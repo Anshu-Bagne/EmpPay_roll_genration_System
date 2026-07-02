@@ -1,0 +1,278 @@
+<?php
+namespace App\Controller;
+
+use App\Controller\AppController;
+
+/**
+ * Attendances Controller
+ *
+ * @property \App\Model\Table\AttendancesTable $Attendances
+ *
+ * @method \App\Model\Entity\Attendance[]|\Cake\Datasource\ResultSetInterface paginate($object = null, array $settings = [])
+ */
+class AttendancesController extends AppController
+{
+    /**
+     * Index method
+     *
+     * @return \Cake\Http\Response|null
+     */
+    public function index()
+    {
+        $this->paginate = [
+            'contain' => ['Employees'],
+        ];
+        $attendances = $this->paginate($this->Attendances);
+
+        $this->set(compact('attendances'));
+    }
+
+    /**
+     * View method
+     *
+     * @param string|null $id Attendance id.
+     * @return \Cake\Http\Response|null
+     * @throws \Cake\Datasource\Exception\RecordNotFoundException When record not found.
+     */
+    public function view($id = null)
+    {
+        $attendance = $this->Attendances->get($id, [
+            'contain' => ['Employees'],
+        ]);
+
+        $this->set('attendance', $attendance);
+    }
+
+    /**
+     * Add method
+     *
+     * @return \Cake\Http\Response|null Redirects on successful add, renders view otherwise.
+     */
+    public function add()
+    {
+        $attendance = $this->Attendances->newEntity();
+        if ($this->request->is('post')) {
+            $attendance = $this->Attendances->patchEntity($attendance, $this->request->getData());
+            if ($this->Attendances->save($attendance)) {
+                $this->Flash->success(__('The attendance has been saved.'));
+
+                return $this->redirect(['action' => 'index']);
+            }
+            $this->Flash->error(__('The attendance could not be saved. Please, try again.'));
+        }
+        $employees = $this->Attendances->Employees
+           ->find('list', ['keyField' => 'id','valueField' => function ($employee) {
+            return $employee->employee_code . ' - ' . $employee->name;
+            }])->order(['name' => 'ASC']);
+        $this->set(compact('attendance', 'employees'));
+    }
+
+    /**
+     * Edit method
+     *
+     * @param string|null $id Attendance id.
+     * @return \Cake\Http\Response|null Redirects on successful edit, renders view otherwise.
+     * @throws \Cake\Datasource\Exception\RecordNotFoundException When record not found.
+     */
+    public function edit($id = null)
+    {
+        $attendance = $this->Attendances->get($id, [
+            'contain' => [],
+        ]);
+        if ($this->request->is(['patch', 'post', 'put'])) {
+            $attendance = $this->Attendances->patchEntity($attendance, $this->request->getData());
+            if ($this->Attendances->save($attendance)) {
+                $this->Flash->success(__('The attendance has been saved.'));
+
+                return $this->redirect(['action' => 'index']);
+            }
+            $this->Flash->error(__('The attendance could not be saved. Please, try again.'));
+        }
+        $employees = $this->Attendances->Employees->find('list', ['limit' => 200]);
+        $this->set(compact('attendance', 'employees'));
+    }
+
+    /**
+     * Delete method
+     *
+     * @param string|null $id Attendance id.
+     * @return \Cake\Http\Response|null Redirects to index.
+     * @throws \Cake\Datasource\Exception\RecordNotFoundException When record not found.
+     */
+    public function delete($id = null)
+    {
+        $this->request->allowMethod(['post', 'delete']);
+        $attendance = $this->Attendances->get($id);
+        if ($this->Attendances->delete($attendance)) {
+            $this->Flash->success(__('The attendance has been deleted.'));
+        } else {
+            $this->Flash->error(__('The attendance could not be deleted. Please, try again.'));
+        }
+
+        return $this->redirect(['action' => 'index']);
+    }
+
+
+    //mark()
+public function mark()
+{
+   $attendanceDate = $this->request->getQuery('attendance_date');
+   $statusFilter = $this->request->getQuery('status_filter');
+    $mode = null;
+    $employees = [];
+    $attendanceRecords = [];
+
+    if (!empty($attendanceDate) && $attendanceDate > date('Y-m-d')) {
+       $this->Flash->error(__('Attendance date cannot be in the future.'));
+       return $this->redirect(['action' => 'mark']);
+    }
+
+    if (!empty($attendanceDate)) {
+
+        // Detect mode
+        if ($attendanceDate == date('Y-m-d')) {
+            $mode = 'today';
+        } else {
+            $mode = 'history';
+        }
+
+        // Load employees
+        $employees = $this->Attendances
+            ->Employees
+            ->find()
+            ->where([
+                'Employees.status' => 'active',
+                'Employees.joining_date <=' => $attendanceDate
+            ])
+            ->order([
+                'Employees.name' => 'ASC'
+            ])
+            ->all();
+
+        // Load attendance only in history mode
+      if ($mode == 'history') {
+
+            $records = $this->Attendances
+                ->find()
+                ->where([
+                    'attendance_date' => $attendanceDate
+                ])
+                ->all();
+
+            foreach ($records as $record) {
+                $attendanceRecords[$record->employee_id] = $record;
+            }
+        if (!empty($statusFilter)) {
+            $filteredEmployees = [];
+            foreach ($employees as $employee) {
+               $currentStatus = '';
+               if (isset($attendanceRecords[$employee->id])) {
+                 $currentStatus = $attendanceRecords[$employee->id]->status;
+                }
+                if ($statusFilter == 'not_marked') {
+                    if ($currentStatus == '') {
+                        $filteredEmployees[] = $employee;
+                    }
+                } 
+                else{
+                    if ($currentStatus == $statusFilter) {
+                        $filteredEmployees[] = $employee;
+                    }
+                }
+            }
+             $employees = $filteredEmployees;
+        }  
+      }
+    }
+
+
+    $this->set(compact(
+        'attendanceDate',
+        'mode',
+        'employees',
+        'attendanceRecords',
+        'statusFilter'
+    ));
+}
+
+//save attendence
+public function saveAttendance()
+{
+   $this->request->allowMethod(['post']);
+   $data = $this->request->getData();
+  $attendanceDate = $data['attendance_date'];
+  $attendanceList = $data['attendance'];
+  
+    if ($attendanceDate > date('Y-m-d')) {
+      $this->Flash->error(__('Attendance date cannot be in the future.'));
+      return $this->redirect(['action' => 'mark']);
+    }
+
+  foreach ($attendanceList as $attendance)
+{
+   if (empty($attendance['status'])) {
+       continue;
+    }
+    $existingAttendance = $this->Attendances->find()
+     ->where([
+        'employee_id' => $attendance['employee_id'],
+        'attendance_date' => $attendanceDate])->first();
+
+    if ($existingAttendance) {
+
+      $existingAttendance->status = $attendance['status'];
+      $this->Attendances->save($existingAttendance);
+    }
+    else {
+     $newAttendance = $this->Attendances->newEntity();
+     $newAttendance->employee_id = $attendance['employee_id'];
+     $newAttendance->attendance_date = $attendanceDate;
+     $newAttendance->status = $attendance['status'];
+     $this->Attendances->save($newAttendance);
+    }
+
+}
+  $this->Flash->success( __('Attendance saved successfully.'));
+  
+  return $this->redirect(['action' => 'mark','?' => ['attendance_date' => $attendanceDate]]);
+  
+}
+
+
+public function ajaxSaveAttendance()
+{
+    $this->request->allowMethod(['post']);
+    $this->autoRender = false;
+    $data = json_decode($this->request->input(), true);
+
+    // ===== Future Date Validation =====
+    if ($data['attendance_date'] > date('Y-m-d')) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Attendance date cannot be in the future.']);
+        return;
+    }
+    // ================================
+
+    $attendance = $this->Attendances
+        ->find()->where([
+            'employee_id' => $data['employee_id'],
+            'attendance_date' => $data['attendance_date']
+        ])->first();
+    
+    if (!$attendance) {
+        $attendance = $this->Attendances->newEntity();
+        $attendance->employee_id = $data['employee_id'];
+        $attendance->attendance_date = $data['attendance_date'];
+    }
+    $attendance->status = $data['status'];
+
+    if ($this->Attendances->save($attendance)) {
+        echo json_encode(['success' => true]);
+    } 
+    else {
+        echo json_encode([ 'success' => false]);
+    }
+}
+
+}
