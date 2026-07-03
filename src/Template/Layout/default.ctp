@@ -61,3 +61,8 @@ $cakeDescription = 'CakePHP: the rapid development php framework';
 
 </body>
 </html>
+
+<?= $this->Html->link(
+    'Reports',
+    ['controller' => 'Reports', 'action' => 'index']
+) ?>

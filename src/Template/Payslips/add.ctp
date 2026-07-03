@@ -10,6 +10,7 @@
         <li><?= $this->Html->link(__('List Payslips'), ['action' => 'index']) ?></li>
         <li><?= $this->Html->link(__('List Employees'), ['controller' => 'Employees', 'action' => 'index']) ?></li>
         <li><?= $this->Html->link(__('New Employee'), ['controller' => 'Employees', 'action' => 'add']) ?></li>
+        <li><?= $this->Html->link(__('Generate Payslip'), ['action' => 'generate']) ?></li>
     </ul>
 </nav>
 <div class="payslips form large-9 medium-8 columns content">

@@ -4,25 +4,26 @@
  * @var \App\Model\Entity\Employee[]|\Cake\Collection\CollectionInterface $employees
  */
 ?>
-<!-- <nav class="large-3 medium-4 columns" id="actions-sidebar">
+<nav class="large-3 medium-4 columns" id="actions-sidebar">
     <ul class="side-nav">
         <li class="heading"><?= __('Actions') ?></li>
-        <li><?= $this->Html->link(__('New Employee'), ['action' => 'add']) ?></li>
+        <li><?= $this->Html->link(__('List Employees'), ['action' => 'index']) ?></li>
         <li><?= $this->Html->link(__('List Departments'), ['controller' => 'Departments', 'action' => 'index']) ?></li>
-        <li><?= $this->Html->link(__('New Department'), ['controller' => 'Departments', 'action' => 'add']) ?></li>
         <li><?= $this->Html->link(__('List Designations'), ['controller' => 'Designations', 'action' => 'index']) ?></li>
-        <li><?= $this->Html->link(__('New Designation'), ['controller' => 'Designations', 'action' => 'add']) ?></li>
         <li><?= $this->Html->link(__('List Attendances'), ['controller' => 'Attendances', 'action' => 'index']) ?></li>
-        <li><?= $this->Html->link(__('New Attendance'), ['controller' => 'Attendances', 'action' => 'add']) ?></li>
+        <li><?= $this->Html->link(__('New Attendance'), ['controller' => 'Attendances', 'action' => 'mark']) ?></li>
         <li><?= $this->Html->link(__('List Payslips'), ['controller' => 'Payslips', 'action' => 'index']) ?></li>
+        <li><?= $this->Html->link(__('Generate Payslip'), ['controller'=>'Payslips','action'=>'generate']) ?></li>
         <li><?= $this->Html->link(__('New Payslip'), ['controller' => 'Payslips', 'action' => 'add']) ?></li>
+        <li><?= $this->html->link(__('Add Bonus'), ['controller'=>'Bonuses','action'=>'add']) ?></li>
+    
     </ul>
-</nav> -->
+</nav>
 <div class="employees index large-9 medium-8 columns content">
     <h3><?= __('Employees Management') ?></h3>
     <div class="row" style="margin-bottom:20px;">
       <p>  
-      <?= $this->Html->link('Add Employee',['action' => 'add'],['class' => 'button']) ?>
+      <?= $this->Html->link('Add Employee', ['action' => 'add'], ['class' => 'button']) ?>
      </p> 
 
     <?= $this->Form->create(null, ['type' => 'get']) ?>
@@ -33,7 +34,7 @@
        'options' => ['active' => 'Active','inactive' => 'Inactive'],
        'empty' => 'All Status','label' => 'Status','value' => $status]) ?>
     <?= $this->Form->button('Search') ?> 
-    <?= $this->Html->link('Reset',['action' => 'index'],['class' => 'button']) ?>
+    <?= $this->Html->link('Reset', ['action' => 'index'], ['class' => 'button']) ?>
     <?= $this->Form->end() ?>
 
 </div>
@@ -61,8 +62,8 @@
                 <!-- <td><?= $this->Number->format($employee->id) ?></td> -->
                 <td><?= h($employee->employee_code) ?></td>
                 <td><?= h($employee->name) ?></td>
-               <td><?= $employee->has('department')? h($employee->department->name): '' ?></td> 
-                <td><?= $employee->has('designation')? h($employee->designation->name): '' ?></td>
+               <td><?= $employee->has('department') ? h($employee->department->name) : '' ?></td> 
+                <td><?= $employee->has('designation') ? h($employee->designation->name) : '' ?></td>
                 <td><?= '₹ ' . number_format($employee->base_salary, 2) ?></td>
                 <td><?= $employee->joining_date->format('d-M-Y') ?></td>
                 <td><?= h($employee->email) ?></td>

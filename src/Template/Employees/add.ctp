@@ -9,12 +9,11 @@
         <li class="heading"><?= __('Actions') ?></li>
         <li><?= $this->Html->link(__('List Employees'), ['action' => 'index']) ?></li>
         <li><?= $this->Html->link(__('List Departments'), ['controller' => 'Departments', 'action' => 'index']) ?></li>
-        <li><?= $this->Html->link(__('New Department'), ['controller' => 'Departments', 'action' => 'add']) ?></li>
         <li><?= $this->Html->link(__('List Designations'), ['controller' => 'Designations', 'action' => 'index']) ?></li>
-        <li><?= $this->Html->link(__('New Designation'), ['controller' => 'Designations', 'action' => 'add']) ?></li>
         <li><?= $this->Html->link(__('List Attendances'), ['controller' => 'Attendances', 'action' => 'index']) ?></li>
-        <li><?= $this->Html->link(__('New Attendance'), ['controller' => 'Attendances', 'action' => 'add']) ?></li>
+        <li><?= $this->Html->link(__('New Attendance'), ['controller' => 'Attendances', 'action' => 'mark']) ?></li>
         <li><?= $this->Html->link(__('List Payslips'), ['controller' => 'Payslips', 'action' => 'index']) ?></li>
+        <li><?= $this->Html->link(__('Generate Payslip'), ['controller'=>'Payslips','action'=>'generate']) ?></li>
         <li><?= $this->Html->link(__('New Payslip'), ['controller' => 'Payslips', 'action' => 'add']) ?></li>
     </ul>
 </nav>
@@ -36,7 +35,7 @@
             echo $this->Form->control('tds_amount');
            echo $this->Form->control('joining_date', ['max' => date('Y-m-d')]);            echo $this->Form->control('email');
             echo $this->Form->control('mobile');
-            echo $this->Form->control('status', ['type' => 'radio','options' => 
+            echo $this->Form->control('status', ['type' => 'radio','options' =>
             ['active' => 'Active','inactive' => 'Inactive'],'hiddenField'=>false,'label' => 'Employee Status']);
         ?>
     </fieldset>

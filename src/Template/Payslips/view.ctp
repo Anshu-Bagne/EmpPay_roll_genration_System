@@ -102,21 +102,11 @@
     <td><?= number_format($payslip->deduction_total, 2) ?></td>
 
 </tr>
-
 <tr style="background:#f5f5f5;">
 
     <th colspan="3" style="text-align:right;">
-
-        Net Salary
-
+       Net Salary
     </th>
-
-    <th>
-
-        ₹ <?= number_format($payslip->net_salary, 2) ?>
-
-    </th>
-
+    <th>₹ <?= number_format($payslip->net_salary, 2) ?></th>
 </tr>
-
 </table>
