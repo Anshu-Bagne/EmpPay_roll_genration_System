@@ -1,7 +1,7 @@
 <?php
+
 namespace App\Model\Table;
 
-use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
@@ -73,6 +73,34 @@ class EmployeesTable extends Table
      * @param \Cake\Validation\Validator $validator Validator instance.
      * @return \Cake\Validation\Validator
      */
+
+    public function searchEmployees($search, $department, $status)
+    {
+        $query = $this->find()
+            ->contain(['Departments', 'Designations']);
+
+        if (!empty($search)) {
+            $query->where([
+                'OR' => [
+                    'Employees.name LIKE' => '%' . $search . '%',
+                    'Employees.email LIKE' => '%' . $search . '%',
+                    'Employees.mobile LIKE' => '%' . $search . '%',
+                ],
+            ]);
+        }
+
+        if (!empty($department)) {
+            $query->where(['Employees.department_id' => $department]);
+        }
+
+        if (!empty($status)) {
+            $query->where(['Employees.status' => $status]);
+        }
+
+        return $query;
+    }
+
+
     public function validationDefault(Validator $validator)
     {
         $validator
@@ -104,7 +132,7 @@ class EmployeesTable extends Table
     ->requirePresence('base_salary', 'create')
     ->notEmptyString('base_salary');
 
-       $validator
+        $validator
     ->numeric('pf_amount', 'Enter a valid PF amount.')
     ->greaterThanOrEqual(
         'pf_amount',
@@ -124,13 +152,12 @@ class EmployeesTable extends Table
     ->requirePresence('tds_amount', 'create')
     ->notEmptyString('tds_amount');
 
-     $validator
+        $validator
     ->date('joining_date')
     ->requirePresence('joining_date', 'create')
     ->notEmptyDate('joining_date')
     ->add('joining_date', 'notFuture', [
         'rule' => function ($value) {
-
             if ($value instanceof \Cake\I18n\FrozenDate) {
                 return $value <= \Cake\I18n\FrozenDate::today();
             }
@@ -140,12 +167,12 @@ class EmployeesTable extends Table
         'message' => 'Joining date cannot be in the future.'
     ]);
 
-       $validator
+        $validator
     ->email('email', false, 'Please enter a valid email.')
     ->requirePresence('email', 'create')
     ->notEmptyString('email');
 
-    $validator
+        $validator
     ->scalar('mobile')
     ->maxLength('mobile', 10)
     ->requirePresence('mobile', 'create')
@@ -156,13 +183,13 @@ class EmployeesTable extends Table
         'Enter a valid 10-digit mobile number.'
     );
 
-    $validator
+        $validator
       ->scalar('status')
       ->inList(
-        'status',
-        ['active', 'inactive'],
-        'Please select a valid status.'
-    )
+          'status',
+          ['active', 'inactive'],
+          'Please select a valid status.'
+      )
     ->allowEmptyString('status');
 
         return $validator;
@@ -176,29 +203,26 @@ class EmployeesTable extends Table
      * @return \Cake\ORM\RulesChecker
      */
     public function buildRules(RulesChecker $rules)
-{
-    $rules->add($rules->isUnique(['email']));
-    $rules->add($rules->isUnique(['mobile']));
-    $rules->add($rules->isUnique(['employee_code']));
+    {
+        $rules->add($rules->isUnique(['email']));
+        $rules->add($rules->isUnique(['mobile']));
+        $rules->add($rules->isUnique(['employee_code']));
+        $rules->add($rules->existsIn(['department_id'], 'Departments'));
+        $rules->add($rules->existsIn(['designation_id'], 'Designations'));
+        return $rules;
+    }
 
-    $rules->add($rules->existsIn(['department_id'], 'Departments'));
-    $rules->add($rules->existsIn(['designation_id'], 'Designations'));
-
-    return $rules;
-}
-
+    //before auto save function of EMP0001
     public function beforeSave($event, $entity, $options)
-{
-    if ($entity->isNew() && empty($entity->employee_code)) {
-
-        $lastEmployee = $this->find()
+    {
+        if ($entity->isNew() && empty($entity->employee_code)) {
+            $lastEmployee = $this->find()
             ->order(['id' => 'DESC'])
             ->first();
 
-        $nextNumber = $lastEmployee ? $lastEmployee->id + 1 : 1;
+            $nextNumber = $lastEmployee ? $lastEmployee->id + 1 : 1;
 
-        $entity->employee_code =
-            'EMP' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+            $entity->employee_code ='EMP' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+        }
     }
-}
 }

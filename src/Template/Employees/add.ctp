@@ -20,20 +20,14 @@
 <div class="employees form large-9 medium-8 columns content">
     <?= $this->Form->create($employee) ?>
     <fieldset>
-        <!-- <legend><?= __('Add Employee') ?></legend>
-        
-        <div class="input text">
-            <label>Employee Code</label>
-            <input type="text" value="Will be generated automatically" readonly>
-        </div> -->
+
         <?php
             echo $this->Form->control('name');
             echo $this->Form->control('department_id', ['options' => $departments]);
             echo $this->Form->control('designation_id', ['options' => $designations]);
             echo $this->Form->control('base_salary');
-            echo $this->Form->control('pf_amount');
-            echo $this->Form->control('tds_amount');
-           echo $this->Form->control('joining_date', ['max' => date('Y-m-d')]);            echo $this->Form->control('email');
+            echo $this->Form->control('joining_date', ['max' => date('Y-m-d')]);
+            echo $this->Form->control('email');
             echo $this->Form->control('mobile');
             echo $this->Form->control('status', ['type' => 'radio','options' =>
             ['active' => 'Active','inactive' => 'Inactive'],'hiddenField'=>false,'label' => 'Employee Status']);
