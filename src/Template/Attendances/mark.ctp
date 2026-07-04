@@ -49,39 +49,22 @@
 </h4>
 
 <?php endif; ?>
-
-
 <!-- Employee Table -->
+ <?php if (!empty($employees)): ?>
 
-<?php if (!empty($employees)): ?>
+<?= $this->Form->create(null, ['url' => ['action' => 'saveAttendance']]) ?>
 
-<?= $this->Form->create(null, [
-    'url' => ['action' => 'saveAttendance']
-]) ?>
-
-<?= $this->Form->hidden(
-    'attendance_date',
-    ['value' => $attendanceDate]
-) ?>
+<?= $this->Form->hidden('attendance_date', ['value' => $attendanceDate]) ?>
 
 <table border="1" cellpadding="8" cellspacing="0" width="100%">
-
-    <thead>
-
+<thead>
         <tr>
-
-            <th>Employee Code</th>
-
-            <th>Employee Name</th>
-
-            <th>Status</th>
-
+             <th>Employee Code</th>
+             <th>Employee Name</th>
+             <th>Status</th>
         </tr>
-
-    </thead>
-
-    <tbody>
-
+</thead>
+<tbody>
     <?php foreach ($employees as $employee): ?>
 
         <?php
@@ -106,14 +89,15 @@
             <td>
 
                 <?= $this->Form->hidden(
-                    "attendance.$employee->id.employee_id",
-                    [
+            "attendance.$employee->id.employee_id",
+            [
                         'value' => $employee->id
                     ]
-                ) ?>
+        ) ?>
 
-                <?= $this->Form->control("attendance.$employee->id.status",
-                  [
+                <?= $this->Form->control(
+            "attendance.$employee->id.status",
+            [
                     'type' => 'select',
                     'label' => false,
                     'options' => [
@@ -125,7 +109,8 @@
                     'class' => 'attendance-status',
                     'data-employee-id' => $employee->id,
                     'data-date' => $attendanceDate
-                    ]) 
+                    ]
+        )
                 ?>
 
             </td>
@@ -139,8 +124,6 @@
 </table>
 
 <br>
-
-<?= $this->Form->button('Save Attendance') ?>
 
 <?= $this->Form->end() ?>
 
@@ -184,16 +167,10 @@ document.querySelectorAll('.attendance-status').forEach(function(dropdown){
         let employeeId = this.dataset.employeeId;
         let attendanceDate = this.dataset.date;
         let status = this.value;
-
-
-        fetch("<?= $this->Url->build([
-            'controller' => 'Attendances',
-            'action' => 'ajaxSaveAttendance'
-        ]) ?>", {
-
+        fetch("<?= $this->Url->build(['controller' => 'Attendances','action' => 'ajaxSaveAttendance']) ?>"
+        ,{
             method: "POST",
-
-            headers: {
+               headers: {
                 "Content-Type": "application/json",
                 "X-CSRF-Token": document
                     .querySelector('meta[name="csrfToken"]')

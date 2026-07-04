@@ -4,7 +4,7 @@
  * @var \App\Model\Entity\Attendance[]|\Cake\Collection\CollectionInterface $attendances
  */
 ?>
-<nav class="large-3 medium-4 columns" id="actions-sidebar">
+<nav class="large-3 medium-3 columns" id="actions-sidebar">
     <ul class="side-nav">
         <li class="heading"><?= __('Actions') ?></li>
         <li><?= $this->Html->link(__('New Attendance'), ['action' => 'add']) ?></li>
@@ -14,6 +14,12 @@
 </nav>
 <div class="attendances index large-9 medium-8 columns content">
     <h3><?= __('Attendances') ?></h3>
+
+    <?= $this->Html->link(
+    'Attendance Report',
+    ['action' => 'report'],
+    ['class' => 'button']
+); ?>
     <table cellpadding="0" cellspacing="0">
         <thead>
             <tr>
