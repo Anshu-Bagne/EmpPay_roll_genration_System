@@ -173,45 +173,6 @@ class AttendancesController extends AppController
         ));
     }
 
-    //save attendence
-    public function saveAttendance()
-    {
-        $this->request->allowMethod(['post']);
-        $data = $this->request->getData();
-        $attendanceDate = $data['attendance_date'];
-        $attendanceList = $data['attendance'];
-
-        if ($attendanceDate > date('Y-m-d')) {
-            $this->Flash->error(__('Attendance date cannot be in the future.'));
-            return $this->redirect(['action' => 'mark']);
-        }
-
-        foreach ($attendanceList as $attendance) {
-            if (empty($attendance['status'])) {
-                continue;
-            }
-            $existingAttendance = $this->Attendances->find()
-     ->where([
-        'employee_id' => $attendance['employee_id'],
-        'attendance_date' => $attendanceDate])->first();
-
-            if ($existingAttendance) {
-                $existingAttendance->status = $attendance['status'];
-                $this->Attendances->save($existingAttendance);
-            } else {
-                $newAttendance = $this->Attendances->newEntity();
-                $newAttendance->employee_id = $attendance['employee_id'];
-                $newAttendance->attendance_date = $attendanceDate;
-                $newAttendance->status = $attendance['status'];
-                $this->Attendances->save($newAttendance);
-            }
-        }
-        $this->Flash->success(__('Attendance saved successfully.'));
-
-        return $this->redirect(['action' => 'mark','?' => ['attendance_date' => $attendanceDate]]);
-    }
-
-
     public function ajaxSaveAttendance()
     {
         $this->request->allowMethod(['post']);
@@ -243,7 +204,6 @@ class AttendancesController extends AppController
     {
         $month = $this->request->getQuery('month');
         $year  = $this->request->getQuery('year');
-
         $dates = [];
         $employees = [];
         $attendanceMatrix = [];
@@ -266,15 +226,15 @@ class AttendancesController extends AppController
                 if (date('w', strtotime($currentDate)) == 0) {
                     continue;
                 }
-
                 $dates[] = $currentDate;
             }
-            $attendanceRecords = $this->Attendances
-            ->find()
-            ->where([
-            'MONTH(attendance_date)' => $month,
-            'YEAR(attendance_date)'  => $year
-            ])->toArray();
+            // $attendanceRecords = $this->Attendances
+            // ->find()
+            // ->where([
+            // 'MONTH(attendance_date)' => $month,
+            // 'YEAR(attendance_date)'  => $year
+            // ])->toArray();
+            $attendanceRecords = $this->Attendances->getMonthlyattendance($month, $year);
 
             foreach ($attendanceRecords as $record) {
                 $attendanceMatrix[$record->employee_id]
@@ -282,13 +242,14 @@ class AttendancesController extends AppController
             }
         }
 
-        $employees = $this->Attendances
-        ->Employees->find()
-        ->where([
-        'status' => 'active'
-         ])->order([
-        'employee_code' => 'ASC'
-        ])->toArray();
+        // $employees = $this->Attendances->Employees->find()
+        // ->where([
+        // 'status' => 'active'
+        //  ])->order([
+        // 'employee_code' => 'ASC'
+        // ])->toArray();
+
+        $employees =$this->Attendances->Employees->getActiveEmployees();
 
         $this->set(compact(
             'month',

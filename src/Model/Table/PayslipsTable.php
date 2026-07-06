@@ -134,4 +134,27 @@ class PayslipsTable extends Table
 
         return $rules;
     }
+
+    public function createPayslipEntity($employee, $month, $year, $workingDays, $paymentDate)
+    {
+        $payslip = $this->Payslips->newEntity();
+        $payslip = $this->Payslips->patchEntity($payslip, [
+            'employee_id'            => $employee->id,
+            'payroll_month'          => $payrollMonth,
+            'payroll_year'           => $payrollYear,
+            'working_days'           => $workingDays,
+            'present_days'           => $employee->present_days,
+            'leave_days'             => $employee->leave_days,
+            'base_salary'            => $employee->monthly_salary,
+            'salary_earned'          => $employee->salary_earned,
+            'bonus_total'            => $employee->bonus,
+            'pf_amount'              => $employee->pf,
+            'tds_amount'             => $employee->tds,
+            'deduction_total'        => $employee->total_deduction,
+            'unpaid_leave_deduction' => $employee->unpaid_leave_deduction,
+            'net_salary'             => $employee->net_salary,
+            'payment_date'           => $paymentDate
+             ]);
+        return $payslip;
+    }
 }

@@ -82,6 +82,7 @@ class EmployeesTable extends Table
         if (!empty($search)) {
             $query->where([
                 'OR' => [
+                    'Employees.employee_code LIKE' => '%' . $search . '%',
                     'Employees.name LIKE' => '%' . $search . '%',
                     'Employees.email LIKE' => '%' . $search . '%',
                     'Employees.mobile LIKE' => '%' . $search . '%',
@@ -112,15 +113,15 @@ class EmployeesTable extends Table
            ->maxLength('employee_code', 20)
            ->allowEmptyString('employee_code', 'create');
         $validator
-    ->scalar('name')
-    ->maxLength('name', 100)
-    ->requirePresence('name', 'create')
-    ->notEmptyString('name', 'Please enter employee name')
-    ->regex(
-        'name',
-        '/^[A-Za-z ]+$/',
-        'Only alphabets and spaces are allowed.'
-    );
+           ->scalar('name')
+         ->maxLength('name', 100)
+         ->requirePresence('name', 'create')
+         ->notEmptyString('name', 'Please enter employee name')
+         ->regex(
+             'name',
+             '/^[A-Za-z ]+$/',
+             'Only alphabets and spaces are allowed.'
+         );
 
         $validator
     ->numeric('base_salary', 'Please enter a valid salary.')
@@ -132,25 +133,17 @@ class EmployeesTable extends Table
     ->requirePresence('base_salary', 'create')
     ->notEmptyString('base_salary');
 
-        $validator
-    ->numeric('pf_amount', 'Enter a valid PF amount.')
-    ->greaterThanOrEqual(
-        'pf_amount',
-        0,
-        'PF amount cannot be negative.'
-    )
-    ->requirePresence('pf_amount', 'create')
-    ->notEmptyString('pf_amount');
+        //     $validator
+        // ->numeric('pf_amount', 'Enter a valid PF amount.')
+        // ->greaterThanOrEqual('pf_amount', 0, 'PF amount cannot be negative.')
+        // ->requirePresence('pf_amount', 'create');
+        //     //->notEmptyString('pf_amount');
 
-        $validator
-    ->numeric('tds_amount', 'Enter a valid TDS amount.')
-    ->greaterThanOrEqual(
-        'tds_amount',
-        0,
-        'TDS amount cannot be negative.'
-    )
-    ->requirePresence('tds_amount', 'create')
-    ->notEmptyString('tds_amount');
+        //     $validator
+        // ->numeric('tds_amount', 'Enter a valid TDS amount.')
+        // ->greaterThanOrEqual('tds_amount', 0, 'TDS amount cannot be negative.')
+        // ->requirePresence('tds_amount', 'create');
+        //     //->notEmptyString('tds_amount');
 
         $validator
     ->date('joining_date')
@@ -220,6 +213,14 @@ class EmployeesTable extends Table
         ]);
     }
 
+    public function getActiveEmployees()
+    {
+        return $this->find()
+        ->where(['status' => 'active'])
+        ->order(['employee_code' => 'ASC'])
+        ->toArray();
+    }
+
     //delete emp
     public function canDeleteEmployee($id)
     {
@@ -248,5 +249,17 @@ class EmployeesTable extends Table
         ->where(['Employees.status' => 'active','Employees.joining_date <=' => $attendanceDate])
         ->order(['Employees.name' => 'ASC'])
         ->all();
+    }
+
+    //payroll functions
+    public function getPayrollEmployees($lastDate)
+    {
+        return $this->find()
+        ->contain(['Departments','Designations'])
+        ->where([
+            'Employees.status' => 'active',
+            'Employees.joining_date <=' => $lastDate
+        ])
+        ->toArray();
     }
 }

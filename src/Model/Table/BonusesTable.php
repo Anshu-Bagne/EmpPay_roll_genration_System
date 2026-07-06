@@ -124,4 +124,21 @@ class BonusesTable extends Table
         );
         return $rules;
     }
+
+    public function getmonthlyBonus($EmployeeId, $month, $year)
+    {
+        $bonus= $this->find()
+       ->where([
+        'employee_id'=>$EmployeeId,
+        'payroll_month'=>$month,
+        'payroll_year'=>$year
+       ])
+       ->select(['total_bonus'=>$this->find()->func()->sum('amount')])
+       ->first();
+
+        if ($bonus && $bonus->total_bonus) {
+            return $bonus->total_bonus;
+        }
+        return 0;
+    }
 }

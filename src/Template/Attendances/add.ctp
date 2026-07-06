@@ -19,12 +19,6 @@
         <legend><?= __('Add Attendance') ?></legend>
         <?php
             echo $this->Form->control('employee_id', ['options' => $employees]);
-            // echo $this->Form->control('attendance_date', ['type' => 'text','label' => 'Attendance Date',
-            //  'templates' => [
-            //     'inputContainer' => '<div class="input {{type}}{{required}}">{{content}}</div>'],
-            //
-            //    'value' => isset($attendance->attendance_date)? $attendance->attendance_date->format('Y-m-d') : date('Y-m-d'),'type' => 'date','max' => date('Y-m-d')]);
-
         ?>
         <label>Attendance Date</label>
            <input type="date"name="attendance_date"

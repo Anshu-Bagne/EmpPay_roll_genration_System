@@ -69,16 +69,16 @@ class AttendancesTable extends Table
             ->requirePresence('status', 'create')
             ->notEmptyString('status');
 
-        return $validator;
-
         $validator->add(
             'attendance_date',
             'notFuture',
             ['rule' => function ($value) {
                 return $value <= date('Y-m-d');
             },'message' => 'Attendance date cannot be in the future.'
-        ]
+           ]
         );
+
+        return $validator;
     }
 
     /**
@@ -113,6 +113,14 @@ class AttendancesTable extends Table
         return $attendanceMap;
     }
 
+    public function getMonthlyattendance($month, $year)
+    {
+        return  $this->find()
+            ->where([
+            'MONTH(attendance_date)' => $month,
+            'YEAR(attendance_date)'  => $year
+            ])->toArray();
+    }
 
     public function saveAttendanceStatus($employeeId, $attendanceDate, $status)
     {
@@ -127,5 +135,62 @@ class AttendancesTable extends Table
         }
         $attendance->status = $status;
         return $this->save($attendance);
+    }
+
+    public function getAttendanceSummary($employeeId, $month, $year)
+    {
+        $summary =['present' => 0,'leave' => 0,'absent' =>0];
+
+        $records = $this->find()
+        ->select([
+            'status',
+            'total' => $this->find()->func()->count('*')
+        ])
+        ->where([
+            'employee_id' => $employeeId,
+            'MONTH(attendance_date)' => $month,
+            'YEAR(attendance_date)' => $year
+        ])
+        ->group('status')
+        ->toArray();
+
+        foreach ($records as $record) {
+            $summary[$record->status] = $record->total;
+        }
+
+        return $summary;
+    }
+
+    public function getMissingAttendanceDates($employeeId, $month, $year)
+    {
+        $missingDates = [];
+
+        $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
+
+        for ($day = 1; $day <= $daysInMonth; $day++) {
+            $currentDate = sprintf(
+                '%04d-%02d-%02d',
+                $year,
+                $month,
+                $day
+            );
+
+            // Skip Sundays
+            if (date('w', strtotime($currentDate)) == 0) {
+                continue;
+            }
+            $exists = $this->find()
+            ->where([
+                'employee_id' => $employeeId,
+                'attendance_date' => $currentDate
+            ])
+            ->count();
+
+            if ($exists == 0) {
+                $missingDates[] = $currentDate;
+            }
+        }
+
+        return $missingDates;
     }
 }

@@ -28,9 +28,7 @@
         'empty' => 'All',
         'value' => $statusFilter,
         'disabled' => ($mode == 'today')
-        // 'class' => 'attendance-status',
-        // 'data-employee-id'=>$employee->id,
-        // 'data-date'=>$attendanceDate
+
     ]) ?>
 
     <?= $this->Form->button('Load Employees') ?>
@@ -111,8 +109,10 @@
                     'data-employee-id' => $employee->id,
                     'data-date' => $attendanceDate
                     ]
-        )
-                ?>
+        )?>
+            <span class="save-icon" style="margin-left:8px;font-size:18px;"></span>
+
+                
 
             </td>
 
@@ -168,6 +168,10 @@ document.querySelectorAll('.attendance-status').forEach(function(dropdown){
         let employeeId = this.dataset.employeeId;
         let attendanceDate = this.dataset.date;
         let status = this.value;
+       let icon = this.closest("td").querySelector(".save-icon");
+        icon.innerHTML = "⏳";
+        icon.style.color = "orange";
+
         fetch("<?= $this->Url->build(['controller' => 'Attendances','action' => 'ajaxSaveAttendance']) ?>"
         ,{
             method: "POST",
@@ -193,18 +197,28 @@ document.querySelectorAll('.attendance-status').forEach(function(dropdown){
 
     if(data.success){
 
-        console.log("Attendance Saved");
+    icon.innerHTML = "✔";
+    icon.style.color = "green";
 
     }else{
 
-        console.log("Save Failed");
+    icon.innerHTML = "✖";
+    icon.style.color = "red";
 
-    }
+}
+// setTimeout(function(){
+
+//     icon.innerHTML = "";
+
+// },2000);
 
 })
-        .catch(function(error){
-            console.log(error);
-        });
+       .catch(function(error){
+               icon.innerHTML = "✖";
+              icon.style.color = "red";
+    console.log(error);
+
+});
     });
 });
 

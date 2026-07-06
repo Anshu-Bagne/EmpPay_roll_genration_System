@@ -7,19 +7,15 @@
 <nav class="large-3 medium-3 columns" id="actions-sidebar">
     <ul class="side-nav">
         <li class="heading"><?= __('Actions') ?></li>
-        <li><?= $this->Html->link(__('New Attendance'), ['action' => 'add']) ?></li>
+        <li><?= $this->Html->link(__('New Attendance'), ['action' => 'mark']) ?></li>
         <li><?= $this->Html->link(__('List Employees'), ['controller' => 'Employees', 'action' => 'index']) ?></li>
         <li><?= $this->Html->link(__('New Employee'), ['controller' => 'Employees', 'action' => 'add']) ?></li>
     </ul>
 </nav>
 <div class="attendances index large-9 medium-8 columns content">
     <h3><?= __('Attendances') ?></h3>
-
-    <?= $this->Html->link(
-    'Attendance Report',
-    ['action' => 'report'],
-    ['class' => 'button']
-); ?>
+    <?= $this->Html->link(__('Attendance Report'), ['controller' => 'Reports', 'action' => 'index'], ['class'=>'button']) ?>
+    
     <table cellpadding="0" cellspacing="0">
         <thead>
             <tr>

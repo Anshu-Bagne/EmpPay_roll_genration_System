@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Model\Entity;
 
 use Cake\ORM\Entity;
@@ -43,8 +44,8 @@ class Employee extends Entity
         'department_id' => true,
         'designation_id' => true,
         'base_salary' => true,
-        'pf_amount' => true,
-        'tds_amount' => true,
+        // 'pf_amount' => true,
+        // 'tds_amount' => true,
         'joining_date' => true,
         'email' => true,
         'mobile' => true,

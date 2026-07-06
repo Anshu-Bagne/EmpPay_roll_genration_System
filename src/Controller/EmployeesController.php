@@ -35,26 +35,6 @@ class EmployeesController extends AppController
         // Start query
         $query = $this->Employees->searchEmployees($search, $department, $status);
 
-        // // Apply search if user entered something
-        // if (!empty($search)) {
-        //     $query->where([
-        //     'OR' => [
-        //         'Employees.employee_code LIKE' => '%' . $search . '%',
-        //         'Employees.name LIKE' => '%' . $search . '%',
-        //         'Employees.email LIKE' => '%' . $search . '%',
-        //         'Employees.mobile LIKE' => '%' . $search . '%',
-        //     ]
-        // ]);
-        // }
-        // //4 deaprtment filter
-        // if (!empty($department)) {
-        //     $query->where(['Employees.department_id' => $department]);
-        // }
-
-        // if (!empty($status)) {
-        //     $query->where(['Employees.status' => $status]);
-        // }
-
         // 5. LOAD DEPARTMENTS HERE
         $departments = $this->Departments->getDepartmentList();
         $designations = $this->Designations->getDesignationList();

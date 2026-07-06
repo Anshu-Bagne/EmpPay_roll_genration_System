@@ -8,10 +8,10 @@
     <ul class="side-nav">
         <li class="heading"><?= __('Actions') ?></li>
         <li><?= $this->Form->postLink(
-                __('Delete'),
-                ['action' => 'delete', $employee->id],
-                ['confirm' => __('Are you sure you want to delete # {0}?', $employee->id)]
-            )
+    __('Delete'),
+    ['action' => 'delete', $employee->id],
+    ['confirm' => __('Are you sure you want to delete # {0}?', $employee->id)]
+)
         ?></li>
         <li><?= $this->Html->link(__('List Employees'), ['action' => 'index']) ?></li>
         <li><?= $this->Html->link(__('List Departments'), ['controller' => 'Departments', 'action' => 'index']) ?></li>
@@ -38,12 +38,10 @@
             echo $this->Form->control('department_id', ['options' => $departments]);
             echo $this->Form->control('designation_id', ['options' => $designations]);
             echo $this->Form->control('base_salary');
-            echo $this->Form->control('pf_amount');
-            echo $this->Form->control('tds_amount');
             echo $this->Form->control('joining_date', ['max' => date('Y-m-d')]);;
             echo $this->Form->control('email');
             echo $this->Form->control('mobile');
-           echo $this->Form->control('status', ['type' => 'radio','options' => ['active' => 'Active','inactive' => 'Inactive'], 'hiddenField' => false,'label' => 'Employee Status']);        
+           echo $this->Form->control('status', ['type' => 'radio','options' => ['active' => 'Active','inactive' => 'Inactive'], 'hiddenField' => false,'label' => 'Employee Status']);
     ?>
     </fieldset>
     <?= $this->Form->button(__('Submit')) ?>
