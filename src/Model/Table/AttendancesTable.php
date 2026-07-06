@@ -1,7 +1,7 @@
 <?php
+
 namespace App\Model\Table;
 
-use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
@@ -34,7 +34,7 @@ class AttendancesTable extends Table
     {
         parent::initialize($config);
 
-        $this->setTable('attendances'); 
+        $this->setTable('attendances');
         $this->setDisplayField('id');
         $this->setPrimaryKey('id');
 
@@ -43,12 +43,16 @@ class AttendancesTable extends Table
         $this->belongsTo('Employees', ['foreignKey' => 'employee_id','joinType' => 'INNER',]);
     }
 
+
+
     /**
      * Default validation rules.
      *
      * @param \Cake\Validation\Validator $validator Validator instance.
      * @return \Cake\Validation\Validator
      */
+
+
     public function validationDefault(Validator $validator)
     {
         $validator
@@ -67,11 +71,14 @@ class AttendancesTable extends Table
 
         return $validator;
 
-        $validator->add('attendance_date', 'notFuture', 
-        ['rule' => function ($value) {
-           return $value <= date('Y-m-d');
-           },'message' => 'Attendance date cannot be in the future.'
-        ]);
+        $validator->add(
+            'attendance_date',
+            'notFuture',
+            ['rule' => function ($value) {
+                return $value <= date('Y-m-d');
+            },'message' => 'Attendance date cannot be in the future.'
+        ]
+        );
     }
 
     /**
@@ -86,5 +93,39 @@ class AttendancesTable extends Table
         $rules->add($rules->existsIn(['employee_id'], 'Employees'));
 
         return $rules;
+    }
+
+    public function getAttendancebyDate($attendanceDate)
+    {
+        return $this->find()
+            ->where(['attendance_date'=>$attendanceDate])
+            ->all();
+    }
+
+    public function getattendanceMap($attendanceDate)
+    {
+        $records= $this->getAttendancebyDate($attendanceDate);
+        $attendanceMap=[];
+
+        foreach ($records as $record) {
+            $attendanceMap[$record->employee_id]=$record;
+        }
+        return $attendanceMap;
+    }
+
+
+    public function saveAttendanceStatus($employeeId, $attendanceDate, $status)
+    {
+        $attendance = $this->find()
+             ->where(['employee_id' => $employeeId,'attendance_date' => $attendanceDate])
+             ->first();
+
+        if (!$attendance) {
+            $attendance = $this->newEntity();
+            $attendance->employee_id = $employeeId;
+            $attendance->attendance_date = $attendanceDate;
+        }
+        $attendance->status = $status;
+        return $this->save($attendance);
     }
 }

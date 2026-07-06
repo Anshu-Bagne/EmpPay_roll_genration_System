@@ -212,6 +212,21 @@ class EmployeesTable extends Table
         return $rules;
     }
 
+    //get all details of emp
+    public function getEmployeedetails($id)
+    {
+        return $this->get($id, [
+            'contain' => ['Departments', 'Designations', 'Attendances', 'Payslips'],
+        ]);
+    }
+
+    //delete emp
+    public function canDeleteEmployee($id)
+    {
+        $employee = $this->get($id, ['contain' => ['Attendances', 'Payslips']]);
+        return empty($employee->attendances) && empty($employee->payslips);
+    }
+
     //before auto save function of EMP0001
     public function beforeSave($event, $entity, $options)
     {
@@ -224,5 +239,14 @@ class EmployeesTable extends Table
 
             $entity->employee_code ='EMP' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
         }
+    }
+
+    //attendence of emp
+    public function getEmployeeAttendance($attendanceDate)
+    {
+        return $this->find()
+        ->where(['Employees.status' => 'active','Employees.joining_date <=' => $attendanceDate])
+        ->order(['Employees.name' => 'ASC'])
+        ->all();
     }
 }

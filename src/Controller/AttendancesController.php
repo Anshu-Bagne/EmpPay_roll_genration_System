@@ -18,9 +18,7 @@ class AttendancesController extends AppController
      */
     public function index()
     {
-        $this->paginate = [
-            'contain' => ['Employees'],
-        ];
+        $this->paginate = ['contain' => ['Employees'],];
         $attendances = $this->paginate($this->Attendances);
 
         $this->set(compact('attendances'));
@@ -119,7 +117,7 @@ class AttendancesController extends AppController
         $statusFilter = $this->request->getQuery('status_filter');
         $mode = null;
         $employees = [];
-        $attendanceRecords = [];
+
 
         if (!empty($attendanceDate) && $attendanceDate > date('Y-m-d')) {
             $this->Flash->error(__('Attendance date cannot be in the future.'));
@@ -136,30 +134,13 @@ class AttendancesController extends AppController
             }
 
             // Load employees
-            $employees = $this->Attendances
-            ->Employees
-            ->find()
-            ->where([
-                'Employees.status' => 'active',
-                'Employees.joining_date <=' => $attendanceDate
-            ])
-            ->order([
-                'Employees.name' => 'ASC'
-            ])
-            ->all();
+            $employees = $this->Attendances->Employees->getEmployeeAttendance($attendanceDate);
 
             // Load attendance only in history mode
             if ($mode == 'history') {
-                $records = $this->Attendances
-                ->find()
-                ->where([
-                    'attendance_date' => $attendanceDate
-                ])
-                ->all();
+                $records = $this->Attendances->getAttendancebyDate($attendanceDate);
+                $attendanceRecords = $this->Attendances->getattendanceMap($attendanceDate);
 
-                foreach ($records as $record) {
-                    $attendanceRecords[$record->employee_id] = $record;
-                }
                 if (!empty($statusFilter)) {
                     $filteredEmployees = [];
                     foreach ($employees as $employee) {
@@ -245,21 +226,13 @@ class AttendancesController extends AppController
             return;
         }//======//
 
-
-        $attendance = $this->Attendances
-        ->find()->where([
-            'employee_id' => $data['employee_id'],
-            'attendance_date' => $data['attendance_date']
-        ])->first();
-
-        if (!$attendance) {
-            $attendance = $this->Attendances->newEntity();
-            $attendance->employee_id = $data['employee_id'];
-            $attendance->attendance_date = $data['attendance_date'];
-        }
-        $attendance->status = $data['status'];
-
-        if ($this->Attendances->save($attendance)) {
+        //ajax save function verify.
+        if ($this->Attendances
+        ->saveAttendanceStatus(
+            $data['employee_id'],
+            $data['attendance_date'],
+            $data['status']
+        )) {
             echo json_encode(['success' => true]);
         } else {
             echo json_encode([ 'success' => false]);
