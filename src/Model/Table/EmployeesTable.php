@@ -133,18 +133,6 @@ class EmployeesTable extends Table
     ->requirePresence('base_salary', 'create')
     ->notEmptyString('base_salary');
 
-        //     $validator
-        // ->numeric('pf_amount', 'Enter a valid PF amount.')
-        // ->greaterThanOrEqual('pf_amount', 0, 'PF amount cannot be negative.')
-        // ->requirePresence('pf_amount', 'create');
-        //     //->notEmptyString('pf_amount');
-
-        //     $validator
-        // ->numeric('tds_amount', 'Enter a valid TDS amount.')
-        // ->greaterThanOrEqual('tds_amount', 0, 'TDS amount cannot be negative.')
-        // ->requirePresence('tds_amount', 'create');
-        //     //->notEmptyString('tds_amount');
-
         $validator
     ->date('joining_date')
     ->requirePresence('joining_date', 'create')
