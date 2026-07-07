@@ -27,7 +27,6 @@
         ],
         'empty' => 'All',
         'value' => $statusFilter,
-        'disabled' => ($mode == 'today')
 
     ]) ?>
 
@@ -37,16 +36,6 @@
 
 <?= $this->Form->end() ?>
 
-
-<!-- Current Mode -->
-<?php if (!empty($mode)): ?>
-
-<h4>
-    Current Mode :
-    <?= ucfirst($mode) ?>
-</h4>
-
-<?php endif; ?>
 
 <!-- Employee Table -->
  <?php if (!empty($employees)): ?>
@@ -67,31 +56,19 @@
     <?php foreach ($employees as $employee): ?>
 
         <?php
-
         $selectedStatus = '';
-
-        if (
-            $mode == 'history' &&
-            isset($attendanceRecords[$employee->id])
-        ) {
-            $selectedStatus = $attendanceRecords[$employee->id]->status;
-        }
-
-        ?>
-
+        if (!empty($employee->attendances)) {
+            $selectedStatus = $employee->attendances[0]->status;//[0]-> contain(['Attendances']) so to get the exact val on P/A/L
+        }?>
         <tr>
 
             <td><?= h($employee->employee_code) ?></td>
-
             <td><?= h($employee->name) ?></td>
-
             <td>
 
                 <?= $this->Form->hidden(
             "attendance.$employee->id.employee_id",
-            [
-                        'value' => $employee->id
-                    ]
+            ['value' => $employee->id]
         ) ?>
 
                 <?= $this->Form->control(
@@ -140,24 +117,25 @@ border:1px solid #fdfdfd;
 border-radius:5px;
 ">
 
-<?php if ($mode == 'history' && !empty($statusFilter)): ?>
+<?php if (!empty($statusFilter)): ?>
 
 <strong>
-No employees found with status
-"<?= ucfirst(str_replace('_', ' ', $statusFilter)) ?>"
-for the selected date.
+No employees found for the selected status.
 </strong>
 
 <?php else: ?>
-
+    
 <strong>
 No employees available for the selected date.
 </strong>
 
 <?php endif; ?>
-</div>
+
+</div> 
 <?php endif; ?>
 <?php endif; ?>
+
+
 
 <script>
 
@@ -206,11 +184,7 @@ document.querySelectorAll('.attendance-status').forEach(function(dropdown){
     icon.style.color = "red";
 
 }
-// setTimeout(function(){
 
-//     icon.innerHTML = "";
-
-// },2000);
 
 })
        .catch(function(error){

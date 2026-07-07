@@ -102,17 +102,6 @@ class AttendancesTable extends Table
             ->all();
     }
 
-    public function getattendanceMap($attendanceDate)
-    {
-        $records= $this->getAttendancebyDate($attendanceDate);
-        $attendanceMap=[];
-
-        foreach ($records as $record) {
-            $attendanceMap[$record->employee_id]=$record;
-        }
-        return $attendanceMap;
-    }
-
     public function getMonthlyattendance($month, $year)
     {
         return  $this->find()
@@ -122,7 +111,7 @@ class AttendancesTable extends Table
             ])->toArray();
     }
 
-    public function saveAttendanceStatus($employeeId, $attendanceDate, $status)
+    public function saveAttendanceStatus(int $employeeId, $attendanceDate, $status)
     {
         $attendance = $this->find()
              ->where(['employee_id' => $employeeId,'attendance_date' => $attendanceDate])
@@ -130,6 +119,7 @@ class AttendancesTable extends Table
 
         if (!$attendance) {
             $attendance = $this->newEntity();
+            //patchdata rather
             $attendance->employee_id = $employeeId;
             $attendance->attendance_date = $attendanceDate;
         }
@@ -164,7 +154,6 @@ class AttendancesTable extends Table
     public function getMissingAttendanceDates($employeeId, $month, $year)
     {
         $missingDates = [];
-
         $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
 
         for ($day = 1; $day <= $daysInMonth; $day++) {

@@ -11,7 +11,7 @@ namespace App\Controller;
  */
 
 class PayslipsController extends AppController
-{
+{    //pf and tds
     private const PF_PERCENTAGE = 8;
     private const TDS_PERCENTAGE = 5;
     /**
@@ -21,11 +21,8 @@ class PayslipsController extends AppController
      */
     public function index()
     {
-        $this->paginate = [
-            'contain' => ['Employees'],
-        ];
+        $this->paginate = ['contain' => ['Employees']];
         $payslips = $this->paginate($this->Payslips);
-
         $this->set(compact('payslips'));
     }
 
@@ -40,12 +37,8 @@ class PayslipsController extends AppController
     public function view($id = null)
     {
         $payslip = $this->Payslips->get($id, [
-        'contain' => [
-            'Employees' => [
-                'Departments',
-                'Designations'
-                ]
-            ]
+            //nesteed assocaition
+        'contain' => ['Employees' => ['Departments','Designations'] ]
         ]);
         $this->set(compact('payslip'));
     }
@@ -95,7 +88,6 @@ class PayslipsController extends AppController
         $employees = $this->Payslips->Employees->find('list', ['limit' => 200]);
         $this->set(compact('payslip', 'employees'));
     }
-
     /**
      * Delete method
      *
@@ -115,9 +107,6 @@ class PayslipsController extends AppController
 
         return $this->redirect(['action' => 'index']);
     }
-
-
-
 
     public function generate()
     {
@@ -165,7 +154,6 @@ class PayslipsController extends AppController
                     $paymentDate['day']
                 );
             }
-
             $paymentDateObj = new \DateTime($paymentDate);
 
             $payrollMonthObj = new \DateTime(

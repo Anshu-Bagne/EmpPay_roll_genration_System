@@ -42,29 +42,14 @@ class EmployeesTable extends Table
         $this->setTable('employees');
         $this->setDisplayField('name');
         $this->setPrimaryKey('id');
-
         $this->addBehavior('Timestamp');
-
-        $this->belongsTo('Departments', [
-            'foreignKey' => 'department_id',
-            'joinType' => 'INNER',
-        ]);
-        $this->belongsTo('Designations', [
-            'foreignKey' => 'designation_id',
-            'joinType' => 'INNER',
-        ]);
-        $this->hasMany('Attendances', [
-            'foreignKey' => 'employee_id',
-        ]);
-        $this->hasMany('Bonuses', [
-            'foreignKey' => 'employee_id',
-        ]);
-        $this->hasMany('Deductions', [
-            'foreignKey' => 'employee_id',
-        ]);
-        $this->hasMany('Payslips', [
-            'foreignKey' => 'employee_id',
-        ]);
+        //associations rules
+        $this->belongsTo('Departments', ['foreignKey' => 'department_id','joinType' => 'INNER',]);
+        $this->belongsTo('Designations', ['foreignKey' => 'designation_id','joinType' => 'INNER',]);
+        $this->hasMany('Attendances', [ 'foreignKey' => 'employee_id', ]);
+        $this->hasMany('Bonuses', ['foreignKey' => 'employee_id',]);
+        $this->hasMany('Deductions', ['foreignKey' => 'employee_id', ]);
+        $this->hasMany('Payslips', ['foreignKey' => 'employee_id',]);
     }
 
     /**
@@ -201,10 +186,10 @@ class EmployeesTable extends Table
         ]);
     }
 
-    public function getActiveEmployees()
+    public function getActiveEmployees($currdate)
     {
         return $this->find()
-        ->where(['status' => 'active'])
+        ->where(['status' => 'active', 'joining_date <='=>$currdate])
         ->order(['employee_code' => 'ASC'])
         ->toArray();
     }
@@ -231,12 +216,31 @@ class EmployeesTable extends Table
     }
 
     //attendence of emp
-    public function getEmployeeAttendance($attendanceDate)
+    public function getEmployeeAttendance($attendanceDate, $statusfilter=null)
     {
-        return $this->find()
-        ->where(['Employees.status' => 'active','Employees.joining_date <=' => $attendanceDate])
-        ->order(['Employees.name' => 'ASC'])
-        ->all();
+        $query= $this->find()
+         ->contain(['Attendances'=> function ($q) use ($attendanceDate) {
+             return $q->where(['attendance_date'=>$attendanceDate]);
+         }
+           ])
+        ->where(['Employees.status' => 'active',
+                 'Employees.joining_date <=' => $attendanceDate
+                 ]);
+
+        // filter checking  notmatching() works like left join
+        if ($statusfilter === 'not_marked') {
+            $query->notMatching('Attendances', function ($q) use ($attendanceDate) {
+                return $q->where(['attendance_date' => $attendanceDate]);
+            });
+        }
+        // works as  matching() inner join query
+        elseif (!empty($statusfilter)) {
+            $query->matching('Attendances', function ($q) use ($attendanceDate, $statusfilter) {
+                return $q->where(['attendance_date' => $attendanceDate,'status' => $statusfilter]);
+            });
+        }
+        return $query->order(['Employees.employee_code' => 'ASC'])
+         ->toArray();
     }
 
     //payroll functions

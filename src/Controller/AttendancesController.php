@@ -75,7 +75,8 @@ class AttendancesController extends AppController
     {
         $attendance = $this->Attendances->get($id, [
             'contain' => [],
-        ]);
+            ]);
+
         if ($this->request->is(['patch', 'post', 'put'])) {
             $attendance = $this->Attendances->patchEntity($attendance, $this->request->getData());
             if ($this->Attendances->save($attendance)) {
@@ -115,60 +116,22 @@ class AttendancesController extends AppController
     {
         $attendanceDate = $this->request->getQuery('attendance_date');
         $statusFilter = $this->request->getQuery('status_filter');
-        $mode = null;
         $employees = [];
 
-
+        //future date validation
         if (!empty($attendanceDate) && $attendanceDate > date('Y-m-d')) {
             $this->Flash->error(__('Attendance date cannot be in the future.'));
             return $this->redirect(['action' => 'mark']);
         }
 
         if (!empty($attendanceDate)) {
-
-        // Detect mode
-            if ($attendanceDate == date('Y-m-d')) {
-                $mode = 'today';
-            } else {
-                $mode = 'history';
-            }
-
-            // Load employees
-            $employees = $this->Attendances->Employees->getEmployeeAttendance($attendanceDate);
-
-            // Load attendance only in history mode
-            if ($mode == 'history') {
-                $records = $this->Attendances->getAttendancebyDate($attendanceDate);
-                $attendanceRecords = $this->Attendances->getattendanceMap($attendanceDate);
-
-                if (!empty($statusFilter)) {
-                    $filteredEmployees = [];
-                    foreach ($employees as $employee) {
-                        $currentStatus = '';
-                        if (isset($attendanceRecords[$employee->id])) {
-                            $currentStatus = $attendanceRecords[$employee->id]->status;
-                        }
-                        if ($statusFilter == 'not_marked') {
-                            if ($currentStatus == '') {
-                                $filteredEmployees[] = $employee;
-                            }
-                        } else {
-                            if ($currentStatus == $statusFilter) {
-                                $filteredEmployees[] = $employee;
-                            }
-                        }
-                    }
-                    $employees = $filteredEmployees;
-                }
-            }
+            // Load employees and attendece acc to the status filter
+            $employees = $this->Attendances->Employees->getEmployeeAttendance($attendanceDate, $statusFilter);
         }
-
 
         $this->set(compact(
             'attendanceDate',
-            'mode',
             'employees',
-            'attendanceRecords',
             'statusFilter'
         ));
     }
@@ -181,11 +144,12 @@ class AttendancesController extends AppController
 
         //Future Date Validation //=====
         if ($data['attendance_date'] > date('Y-m-d')) {
-            echo json_encode([
-            'success' => false,
-            'message' => 'Attendance date cannot be in the future.']);
-            return;
-        }//======//
+            return $this->response->withType('applicaiton/json')
+                   ->withStringBody(json_encode([
+                       'success'=>false,
+                       'message'=>'Date cannot be in future!'
+                   ]));
+        }
 
         //ajax save function verify.
         if ($this->Attendances
@@ -194,9 +158,11 @@ class AttendancesController extends AppController
             $data['attendance_date'],
             $data['status']
         )) {
-            echo json_encode(['success' => true]);
+            return $this->response->withType('application/json')
+            ->withStringBody(json_encode(['success' => true]));
         } else {
-            echo json_encode([ 'success' => false]);
+            return $this->response->withType('application/json')
+            ->withStringBody(json_encode(['success' => false]));
         }
     }
 
@@ -228,12 +194,7 @@ class AttendancesController extends AppController
                 }
                 $dates[] = $currentDate;
             }
-            // $attendanceRecords = $this->Attendances
-            // ->find()
-            // ->where([
-            // 'MONTH(attendance_date)' => $month,
-            // 'YEAR(attendance_date)'  => $year
-            // ])->toArray();
+
             $attendanceRecords = $this->Attendances->getMonthlyattendance($month, $year);
 
             foreach ($attendanceRecords as $record) {
@@ -242,14 +203,8 @@ class AttendancesController extends AppController
             }
         }
 
-        // $employees = $this->Attendances->Employees->find()
-        // ->where([
-        // 'status' => 'active'
-        //  ])->order([
-        // 'employee_code' => 'ASC'
-        // ])->toArray();
-
-        $employees =$this->Attendances->Employees->getActiveEmployees();
+        $currdate = date('y-m-t', strtotime($year.'-'.$month.'-01'));
+        $employees =$this->Attendances->Employees->getActiveEmployees($currdate);
 
         $this->set(compact(
             'month',
