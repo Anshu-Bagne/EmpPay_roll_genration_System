@@ -137,11 +137,11 @@ class PayslipsTable extends Table
 
     public function createPayslipEntity($employee, $month, $year, $workingDays, $paymentDate)
     {
-        $payslip = $this->Payslips->newEntity();
-        $payslip = $this->Payslips->patchEntity($payslip, [
+        $payslip = $this->newEntity();
+        $payslip = $this->patchEntity($payslip, [
             'employee_id'            => $employee->id,
-            'payroll_month'          => $payrollMonth,
-            'payroll_year'           => $payrollYear,
+            'payroll_month'          => $month,
+            'payroll_year'           => $year,
             'working_days'           => $workingDays,
             'present_days'           => $employee->present_days,
             'leave_days'             => $employee->leave_days,
@@ -156,5 +156,16 @@ class PayslipsTable extends Table
             'payment_date'           => $paymentDate
              ]);
         return $payslip;
+    }
+
+    public function payrollExists($month, $year)
+    {
+        return $this->Payslips
+        ->find()
+        ->where([
+        'payroll_month' => $payrollMonth,
+        'payroll_year' => $payrollYear
+        ])
+        ->count();
     }
 }

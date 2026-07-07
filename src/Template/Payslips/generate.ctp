@@ -31,10 +31,7 @@
     'value'=>$payrollYear ?? date('Y')
 ]) ?>
 
-<?= $this->Form->control('payment_date', [
-'type'=>'date',
-'value' => $paymentDate ?? date('Y-m-d')
-]) ?>
+<?= $this->Form->control('payment_date', ['type'=>'date','value' => $paymentDate ?? date('Y-m-d')]) ?>
 <?= $this->Form->button(' Preview Payroll') ?>
 <?= $this->Form->end() ?>
 <?php if (!empty($employees)): ?>
@@ -97,17 +94,16 @@
         <?= date('d-M-Y', strtotime($existingPayroll->payment_date)) ?>
     </strong>
     <br><br>
-    <button
-        class="btn btn-secondary"
-        disabled
-        title="Payroll already generated. Click View Payslips to view the generated payroll.">
-        Generate Payroll
-    </button>
+    <button class="btn btn-secondary" disabled
+        title="Payroll already generated. 
+        Click View Payslips to view the generated payroll.">Generate Payroll</button>
+    
     <?= $this->Html->link(
         'View Payslips',
         ['action' => 'index'],
         ['class' => 'btn btn-primary']
     ) ?>
+    
 </div>
 <?php elseif (!empty($employees)): ?>
 <?= $this->Form->create(null, ['url' => ['action' => 'savePayroll']]); ?>
