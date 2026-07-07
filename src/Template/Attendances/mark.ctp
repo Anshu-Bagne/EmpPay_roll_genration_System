@@ -135,65 +135,98 @@ No employees available for the selected date.
 <?php endif; ?>
 <?php endif; ?>
 
-
-
 <script>
 
-document.querySelectorAll('.attendance-status').forEach(function(dropdown){
+$(document).ready(function () {
 
-    dropdown.addEventListener('change', function(){
+    $('.attendance-status').change(function () {
 
-        let employeeId = this.dataset.employeeId;
-        let attendanceDate = this.dataset.date;
-        let status = this.value;
-       let icon = this.closest("td").querySelector(".save-icon");
-        icon.innerHTML = "⏳";
-        icon.style.color = "orange";
+        let dropdown = $(this);
 
-        fetch("<?= $this->Url->build(['controller' => 'Attendances','action' => 'ajaxSaveAttendance']) ?>"
-        ,{
-            method: "POST",
-               headers: {
-                "Content-Type": "application/json",
-                "X-CSRF-Token": document
-                    .querySelector('meta[name="csrfToken"]')
-                    .getAttribute('content')
+        let employeeId = dropdown.data('employee-id');
+        let attendanceDate = dropdown.data('date');
+        let status = dropdown.val();
+
+        let icon = dropdown.closest("td").find(".save-icon");
+
+        icon.html("⏳");
+        icon.css("color", "orange");
+
+        $.ajax({
+            type:"POST",
+            url: "<?= $this->Url->build(['controller' => 'Attendances','action' => 'ajaxSaveAttendance' ]) ?>",
+            contentType: "application/json",
+            headers: {
+                "X-CSRF-Token":$('meta[name="csrfToken"]').attr('content')
             },
 
-            body: JSON.stringify({
+            data: JSON.stringify({
                 employee_id: employeeId,
                 attendance_date: attendanceDate,
                 status: status
-            })
-        })
-        .then(function(response){
+            }),
 
-    return response.json();
+            success: function (response) {
 
-})
-.then(function(data){
+                if (response.success) {
+                    icon.html("✔");
+                    icon.css("color", "green");
+                } else {
+                    icon.html("✖");
+                    icon.css("color", "red");
+                }
+            },
+            error: function () {
 
-    if(data.success){
+                icon.html("✖");
+                icon.css("color", "red");
 
-    icon.innerHTML = "✔";
-    icon.style.color = "green";
+            }
 
-    }else{
+        });
 
-    icon.innerHTML = "✖";
-    icon.style.color = "red";
-
-}
-
-
-})
-       .catch(function(error){
-               icon.innerHTML = "✖";
-              icon.style.color = "red";
-    console.log(error);
-
-});
     });
+
 });
 
 </script>
+
+
+
+
+    //   $.ajax({
+    //   type: 'post',
+    //   url: url,
+    //   data: formDataArray,
+    //   dataType: 'json',
+    //   context: {
+    //     saveBtnIcon: saveBtnIcon
+    //   },
+    //   beforeSend: function(jqXHR, settings) {
+    //     if (form.checkValidity()) {
+    //       saveBtnIcon.removeClass('fa-save').addClass('fa-spinner');
+    //       return true;
+    //     }
+    //     jqXHR.abort();
+    //     form.reportValidity();
+    //     return false;
+    //   },
+    //   success: function(response) {
+    //     if(response.success){
+    //       const event = new CustomEvent("newLnrCreated", {
+    //         detail: response
+    //       });
+    //       document.dispatchEvent(event);
+    //       Toast.showSuccess(response.message);
+    //     }else{
+    //       Toast.showError(response.message);
+    //     }
+    //     popover.hidePopover();
+    //   },
+    //   error: function(xhr, status, error) {
+
+    //   },
+    //   complete: function(){
+
+    //   }
+    // });

@@ -104,11 +104,18 @@ class AttendancesTable extends Table
 
     public function getMonthlyattendance($month, $year)
     {
-        return  $this->find()
+        $attendanceMatrix = [];
+        $attendanceRecords= $this->find()
             ->where([
             'MONTH(attendance_date)' => $month,
             'YEAR(attendance_date)'  => $year
             ])->toArray();
+
+        foreach ($attendanceRecords as $record) {
+            $attendanceMatrix[$record->employee_id]
+            [$record->attendance_date->format('Y-m-d')]= $record->status;
+        }
+        return $attendanceMatrix;
     }
 
     public function saveAttendanceStatus(int $employeeId, $attendanceDate, $status)

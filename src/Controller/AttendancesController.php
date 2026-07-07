@@ -172,7 +172,7 @@ class AttendancesController extends AppController
         $year  = $this->request->getQuery('year');
         $dates = [];
         $employees = [];
-        $attendanceMatrix = [];
+
 
         if (!empty($month) && !empty($year)) {
             $daysInMonth = cal_days_in_month(
@@ -194,13 +194,7 @@ class AttendancesController extends AppController
                 }
                 $dates[] = $currentDate;
             }
-
-            $attendanceRecords = $this->Attendances->getMonthlyattendance($month, $year);
-
-            foreach ($attendanceRecords as $record) {
-                $attendanceMatrix[$record->employee_id]
-                     [$record->attendance_date->format('Y-m-d')]= $record->status;
-            }
+            $attendanceMatrix = $this->Attendances->getMonthlyattendance($month, $year);
         }
 
         $currdate = date('y-m-t', strtotime($year.'-'.$month.'-01'));
