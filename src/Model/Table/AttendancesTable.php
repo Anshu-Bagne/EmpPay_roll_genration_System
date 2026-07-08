@@ -118,20 +118,38 @@ class AttendancesTable extends Table
         return $attendanceMatrix;
     }
 
-    public function saveAttendanceStatus(int $employeeId, $attendanceDate, $status)
+    // public function saveAttendanceStatus(array $data)
+    // {
+    //     $attendance = $this->find()
+    //          ->where(['employee_id' =>$data['$employee_id'],'attendance_date' => $data['$attendance_date']])
+    //          ->first();
+
+    //     if (!$attendance) {
+    //         $attendance = $this->newEntity();
+    //     }
+    //     //patchdata rather
+    //     $attendance= $this->patchEntity($attendance, $data);
+    //     $result =$this->save($attendance);
+    //     if (!$result) {
+    //         debug($attendance->getErrors());
+    //     }
+    //     return $result;
+    // }
+
+    public function saveAttendanceStatus(array $data)
     {
         $attendance = $this->find()
-             ->where(['employee_id' => $employeeId,'attendance_date' => $attendanceDate])
-             ->first();
+        ->where([
+            'employee_id' => $data['employee_id'],
+            'attendance_date' => $data['attendance_date']
+        ])
+        ->first();
 
         if (!$attendance) {
             $attendance = $this->newEntity();
-            //patchdata rather
-            $attendance->employee_id = $employeeId;
-            $attendance->attendance_date = $attendanceDate;
         }
-        $attendance->status = $status;
-        return $this->save($attendance);
+        $attendance = $this->patchEntity($attendance, $data);
+        return  $this->save($attendance);
     }
 
     public function getAttendanceSummary($employeeId, $month, $year)

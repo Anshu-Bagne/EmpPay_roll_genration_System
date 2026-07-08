@@ -140,24 +140,20 @@ class AttendancesController extends AppController
     {
         $this->request->allowMethod(['post']);
         $this->autoRender = false;
-        $data = json_decode($this->request->input(), true);
+        $data = json_decode($this->request->input(), true);//fetch the data from request and then
+        //true:-convert it to associative array
 
-        //Future Date Validation //=====
+        //Future Date Validation
         if ($data['attendance_date'] > date('Y-m-d')) {
-            return $this->response->withType('applicaiton/json')
-                   ->withStringBody(json_encode([
+            return $this->response->withType('application/json')
+                   ->withStringBody(json_encode([// withStringboady:- sets the responsebody.conten tto send back to brower
                        'success'=>false,
                        'message'=>'Date cannot be in future!'
                    ]));
         }
 
         //ajax save function verify.
-        if ($this->Attendances
-        ->saveAttendanceStatus(
-            $data['employee_id'],
-            $data['attendance_date'],
-            $data['status']
-        )) {
+        if ($this->Attendances->saveAttendanceStatus($data)) {
             return $this->response->withType('application/json')
             ->withStringBody(json_encode(['success' => true]));
         } else {

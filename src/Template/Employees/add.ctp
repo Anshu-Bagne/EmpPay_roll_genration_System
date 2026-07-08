@@ -4,12 +4,10 @@
  * @var \App\Model\Entity\Employee $employee
  */
 ?>
-<nav class="large-3 medium-4 columns" id="actions-sidebar">
+<nav class="large-2 medium-3 columns" id="actions-sidebar">
     <ul class="side-nav">
         <li class="heading"><?= __('Actions') ?></li>
         <li><?= $this->Html->link(__('List Employees'), ['action' => 'index']) ?></li>
-        <li><?= $this->Html->link(__('List Departments'), ['controller' => 'Departments', 'action' => 'index']) ?></li>
-        <li><?= $this->Html->link(__('List Designations'), ['controller' => 'Designations', 'action' => 'index']) ?></li>
         <li><?= $this->Html->link(__('List Attendances'), ['controller' => 'Attendances', 'action' => 'index']) ?></li>
         <li><?= $this->Html->link(__('New Attendance'), ['controller' => 'Attendances', 'action' => 'mark']) ?></li>
         <li><?= $this->Html->link(__('List Payslips'), ['controller' => 'Payslips', 'action' => 'index']) ?></li>
@@ -17,7 +15,7 @@
         <li><?= $this->Html->link(__('New Payslip'), ['controller' => 'Payslips', 'action' => 'add']) ?></li>
     </ul>
 </nav>
-<div class="employees form large-9 medium-8 columns content">
+<div class="employees form large-10 medium-9 columns content">
     <?= $this->Form->create($employee) ?>
     <fieldset>
 

@@ -91,11 +91,7 @@ class BonusesController extends AppController
                         __('Payroll has already been generated for this month. Bonus cannot be added.')
                     );
                 } else {
-
-            // ================================
                     // Save Bonus
-                    // ================================
-
                     $bonus = $this->Bonuses->patchEntity($bonus, $data);
 
                     if ($this->Bonuses->save($bonus)) {

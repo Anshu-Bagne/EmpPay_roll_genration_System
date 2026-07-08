@@ -613,3 +613,119 @@ table td {
     width: 65%;
     text-align: left;
 }
+
+/* employee index.ctp css */
+.employee-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.employee-table th,
+.employee-table td {
+    padding: 10px 12px;
+    vertical-align: middle;
+    border-bottom: 1px solid #ddd;
+}
+
+.employee-table th {
+    background: #f8f8f8;
+    text-align: left;
+}
+
+/* Employee Code */
+.employee-table th:nth-child(1),
+.employee-table td:nth-child(1) {
+    width: 9%;
+}
+
+/* Name */
+.employee-table th:nth-child(2),
+.employee-table td:nth-child(2) {
+    width: 13%;
+}
+
+/* Department */
+.employee-table th:nth-child(3),
+.employee-table td:nth-child(3) {
+    width: 11%;
+}
+
+/* Designation */
+.employee-table th:nth-child(4),
+.employee-table td:nth-child(4) {
+    width: 14%;
+}
+
+/* Salary */
+.employee-table th:nth-child(5),
+.employee-table td:nth-child(5) {
+    width: 10%;
+    text-align: right;
+}
+
+/* Joining Date */
+.employee-table th:nth-child(6),
+.employee-table td:nth-child(6) {
+    width: 9%;
+    white-space: nowrap;
+}
+
+/* Email */
+.employee-table th:nth-child(7),
+.employee-table td:nth-child(7) {
+    width: 20%;
+    word-break: break-word;
+}
+
+/* Mobile */
+.employee-table th:nth-child(8),
+.employee-table td:nth-child(8) {
+    width: 10%;
+    white-space: nowrap;
+}
+
+/* Status */
+.employee-table th:nth-child(9),
+.employee-table td:nth-child(9) {
+    width: 8%;
+    text-align: center;
+}
+
+/* Actions */
+.employee-table th:nth-child(10),
+.employee-table td:nth-child(10) {
+    width: 12%;
+    white-space: nowrap;
+}
+
+.action-link {
+    margin-right: 10px;
+    text-decoration: none;
+}
+
+.delete-link {
+    color: #d9534f;
+}
+
+/* email */
+/* .employee-table td:nth-child(7) {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+} */
+
+.employee-table-container {
+    clear: both;
+    width: 100%;
+    padding: 20px;
+}
+
+.side-nav li {
+    margin-bottom: 8px;
+}
+
+.side-nav li a {
+    font-size: 14px;
+    padding: 4px 8px;
+}

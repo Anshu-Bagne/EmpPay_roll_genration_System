@@ -44,9 +44,9 @@
 <?php foreach ($report as $row): ?>
 
 <tr>
-<td><?= h($row->employee->name) ?></td>
+<td style="white-space: nowrap;"><?= h($row->employee->name) ?></td>
 <td><?= h($row->employee->department->name) ?></td>
-<td><?= date('F', mktime(0, 0, 0, $month, 1)).' '.$year ?></td>
+<td style="white-space: nowrap;"><?= date('F', mktime(0, 0, 0, $month, 1)) . ' ' . $year ?></td>
 <td><?= number_format($row->base_salary, 2) ?></td>
 <td><?= number_format($row->bonus_total, 2) ?></td>
 <td><?= number_format($row->deduction_total, 2) ?></td>

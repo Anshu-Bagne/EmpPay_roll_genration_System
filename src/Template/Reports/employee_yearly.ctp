@@ -25,7 +25,8 @@
 <?php foreach ($report as $row): ?>
 
 <tr>
-<td><?= h($row['employee_name']) ?></td>
+<td style="white-space: nowrap;">
+    <?= h($row->employee_name) ?></td>
 <td><?= h($row['department_name']) ?></td>
 <td><?= h($year) ?></td>
 <td><?= number_format($row['base_salary'], 2) ?></td>

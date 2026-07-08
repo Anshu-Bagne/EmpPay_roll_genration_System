@@ -2,14 +2,11 @@
 
 <!-- Date & Filter Form -->
 <?= $this->Form->create(null, ['type' => 'get']) ?>
-
 <div style="margin-bottom:20px;">
 
     <label><strong>Attendance Date</strong></label><br>
 
-    <input
-        type="date"
-        name="attendance_date"
+    <input type="date" name="attendance_date"
         value="<?= h($attendanceDate ?? '') ?>"
         max="<?= date('Y-m-d') ?>"
         required>
@@ -146,44 +143,46 @@ $(document).ready(function () {
         let employeeId = dropdown.data('employee-id');
         let attendanceDate = dropdown.data('date');
         let status = dropdown.val();
-
         let icon = dropdown.closest("td").find(".save-icon");
 
         icon.html("⏳");
         icon.css("color", "orange");
 
         $.ajax({
-            type:"POST",
-            url: "<?= $this->Url->build(['controller' => 'Attendances','action' => 'ajaxSaveAttendance' ]) ?>",
-            contentType: "application/json",
-            headers: {
-                "X-CSRF-Token":$('meta[name="csrfToken"]').attr('content')
-            },
+             type: "POST",   
+             url: "<?= $this->Url->build(['controller' => 'Attendances','action' => 'ajaxSaveAttendance']) ?>",  
+             contentType: "application/json",
+             dataType: "json", 
+             headers: {      
+                  "X-CSRF-Token": $('meta[name="csrfToken"]').attr('content')   
+                },
 
             data: JSON.stringify({
-                employee_id: employeeId,
-                attendance_date: attendanceDate,
-                status: status
+                  employee_id: employeeId,
+                 attendance_date: attendanceDate,
+                  status: status
             }),
 
             success: function (response) {
+                     console.log(response);
 
-                if (response.success) {
-                    icon.html("✔");
-                    icon.css("color", "green");
-                } else {
-                    icon.html("✖");
-                    icon.css("color", "red");
-                }
+                     if (response.success) {
+                     icon.html("✔");
+                     icon.css("color", "green");
+                    } else {
+                        icon.html("✖");
+                        icon.css("color", "red");       
+              } 
             },
-            error: function () {
 
-                icon.html("✖");
-                icon.css("color", "red");
+    error: function (xhr) {
 
-            }
+        console.log(xhr.responseText);
+        icon.html("✖");
+        icon.css("color", "red");
+    }
+});
 
-        });
 
     });
 
@@ -192,7 +191,7 @@ $(document).ready(function () {
 </script>
 
 
-
+<?php
 
     //   $.ajax({
     //   type: 'post',
@@ -230,3 +229,5 @@ $(document).ready(function () {
 
     //   }
     // });
+
+?>

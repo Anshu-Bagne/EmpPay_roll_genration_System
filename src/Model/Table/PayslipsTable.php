@@ -160,12 +160,82 @@ class PayslipsTable extends Table
 
     public function payrollExists($month, $year)
     {
-        return $this->Payslips
-        ->find()
+        return $this->find()
         ->where([
-        'payroll_month' => $payrollMonth,
-        'payroll_year' => $payrollYear
+        'payroll_month' => $month,
+        'payroll_year' => $year
         ])
         ->count();
+    }
+
+    //fuctions of reportcontroller
+    public function getDepartmentSalaryReport($month, $year)
+    {
+        $report = $this->find();
+        return $report->select([
+                'department_name' => 'Departments.name',
+                'base_pay' => $report->func()->sum('Payslips.base_salary'),
+                'bonus' => $report->func()->sum('Payslips.bonus_total'),
+                'deduction' => $report->func()->sum('Payslips.deduction_total'),
+                'net_salary' => $report->func()->sum('Payslips.net_salary')
+                ])
+                ->contain(['Employees.Departments'])
+                ->where([
+                    'Payslips.payroll_month' => $month,
+                   'Payslips.payroll_year'  => $year
+                ])
+               ->group([
+                    'Departments.id',
+                    'Departments.name'
+                 ])
+                ->enableHydration(false)
+                ->toArray();
+    }
+
+    public function getEmployeeMonthlyReport($month, $year)
+    {
+        $report = $this->find()
+        ->contain([
+            'Employees.Departments'
+        ])
+        ->where([
+            'Payslips.payroll_month' => $month,
+            'Payslips.payroll_year' => $year
+        ])
+        ->order([
+            'Employees.employee_code' => 'ASC'
+        ])
+        ->toArray();
+
+        return $report;
+    }
+
+    public function getEmployeeYearlyReport($year)
+    {
+        $query= $this->find();
+        return $query->select([
+                'employee_name' => 'Employees.name',
+                'department_name' => 'Departments.name',
+                'base_salary' => $query->func()->sum('Payslips.base_salary'),
+                'bonus' => $query->func()->sum('Payslips.bonus_total'),
+                'deduction' => $query->func()->sum('Payslips.deduction_total'),
+                'net_salary' => $query->func()->sum('Payslips.net_salary')
+            ])
+            ->contain([
+                'Employees.Departments'
+            ])
+            ->where([
+                'Payslips.payroll_year' => $year
+            ])
+            ->group([
+                'Employees.id',
+                'Employees.name',
+                'Departments.name'
+                ])
+                ->order([
+                    'Employees.employee_code'=>'ASC'
+                    ])
+                    //->enableHydration(false)
+                    ->toArray();
     }
 }

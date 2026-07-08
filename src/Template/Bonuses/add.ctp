@@ -6,7 +6,7 @@
  */
 ?>
 
-<div class="bonuses form large-9 medium-8 columns content">
+<div class="content-area">
     <?= $this->Form->create($bonus) ?>
     <fieldset>
         <legend><?= __('Employee Bonus Management') ?></legend>
@@ -69,15 +69,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
         // Clear dropdown
         dropdown.innerHTML = "";
-
+    
         allOptions.forEach(function (option) {
-
-            // Always keep the empty option
+            
+        // Always keep the empty option
             if (option.value === "") {
                 dropdown.appendChild(option.cloneNode(true));
                 return;
             }
-
             // Match employee code or name
             if (option.text.toLowerCase().indexOf(keyword) !== -1) {
                 dropdown.appendChild(option.cloneNode(true));
