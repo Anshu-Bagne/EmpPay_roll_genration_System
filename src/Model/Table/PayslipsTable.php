@@ -195,16 +195,12 @@ class PayslipsTable extends Table
     public function getEmployeeMonthlyReport($month, $year)
     {
         $report = $this->find()
-        ->contain([
-            'Employees.Departments'
-        ])
+        ->contain(['Employees.Departments'])
         ->where([
             'Payslips.payroll_month' => $month,
             'Payslips.payroll_year' => $year
         ])
-        ->order([
-            'Employees.employee_code' => 'ASC'
-        ])
+        ->order(['Employees.employee_code' => 'ASC'])
         ->toArray();
 
         return $report;

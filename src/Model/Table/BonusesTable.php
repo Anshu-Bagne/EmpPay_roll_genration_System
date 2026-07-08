@@ -141,4 +141,40 @@ class BonusesTable extends Table
         }
         return 0;
     }
+
+    public function payrollExists($month, $year)
+    {
+        return $this
+               ->Employees->Payslips->find()
+               ->where([
+                      'payroll_month' =>$month,
+                      'payroll_year'  => $year
+               ])
+               ->count()>0;
+    }
+
+    public function saveBonus(array $data)
+    {
+        $bonus = $this->newEntity();
+        $bonus = $this->patchEntity($bonus, $data);
+        return $this->save($bonus);
+    }
+
+    public function validateBonusMonth($month, $year)
+    {
+        $currentMonth = date('n');
+        $currentYear = date('Y');
+
+        if (
+        $year < $currentYear ||
+        ($year == $currentYear && $month < $currentMonth)
+    ) {
+            return [
+            'success' => false,
+            'message' => 'Bonus cannot be assigned for a past payroll month.'
+        ];
+        }
+
+        return ['success' => true];
+    }
 }

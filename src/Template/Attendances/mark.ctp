@@ -38,8 +38,7 @@
  <?php if (!empty($employees)): ?>
 
 <?= $this->Form->create(null, ['url' => ['action' => 'saveAttendance']]) ?>
-
-<?= $this->Form->hidden('attendance_date', ['value' => $attendanceDate]) ?>
+<!-- <?= $this->Form->hidden('attendance_date', ['value' => $attendanceDate]) ?> -->
 
 <table border="1" cellpadding="8" cellspacing="0" width="100%">
 <thead>
