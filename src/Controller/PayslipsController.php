@@ -75,6 +75,12 @@ class PayslipsController extends AppController
             $payslip->tds_amount = $employeePayroll->tds_amount;
             $payslip->unpaid_leave_deduction =$employeePayroll->unpaid_leave_deduction;
 
+            $bonusTotal = $this->Payslips->Bonuses->getBonusTotal($this->request->getData('bonuses'));
+            $manualDeduction = $this->Payslips->Deductions->getDeductionTotal($this->request->getData('deductions'));
+            $payslip->bonus_total = $bonusTotal;
+            $payslip->deduction_total =$employeePayroll->pf_amount +$employeePayroll->tds_amount +$employeePayroll->unpaid_leave_deduction +$manualDeduction;
+            $payslip->net_salary =$employeePayroll->salary_earned + $bonusTotal -$payslip->deduction_total;
+
             foreach ($payslip->bonuses as $bonus) {
                 $bonus->employee_id = $payslip->employee_id;
                 $bonus->payroll_month = $payslip->payroll_month;
@@ -85,19 +91,21 @@ class PayslipsController extends AppController
                 $deduction->payroll_month = $payslip->payroll_month;
                 $deduction->payroll_year = $payslip->payroll_year;
             }
-            if (!$this->Payslips->save($payslip)) {
-                //     $this->Flash->success(__('The payslip has been saved.'));
-                //     return $this->redirect(['action' => 'index']);
-                // }
+            if ($this->Payslips->save($payslip)) {
+                echo "Saved Successfully";
+                die;
+            } else {
                 debug($payslip->getErrors());
 
-                debug($payslip);
+                debug($payslip->bonuses);
+
+                debug($payslip->deductions);
 
                 die;
             }
-
-            // $this->Flash->error(__('unable to save payslip.'));
         }
+        $this->Flash->error(__('unable to save payslip.'));
+
 
         $employees = $this->Payslips->Employees->find()
          ->select(['id','employee_code','name'])
@@ -409,9 +417,9 @@ class PayslipsController extends AppController
             $payrollYear
         );
 
-        $employee->present_days = $summary['present'];
-        $employee->leave_days = $summary['leave'];
-        $employee->absent_days = $summary['absent'];
+        $employee->present_days = $summary['present_days']??0;
+        $employee->leave_days = $summary['leave_days']??0;
+        $employee->absent_days = $summary['absent_days']??0;
 
         // Monthly Salary
         $employee->monthly_salary = round(

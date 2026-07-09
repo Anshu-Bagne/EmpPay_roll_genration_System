@@ -112,4 +112,9 @@ class DeductionsTable extends Table
     ->distinct(['type'])
     ->toArray();
     }
+
+    public function getDeductionTotal(array $deductions)
+    {
+        return array_sum(array_column($deductions, 'amount'));
+    }
 }
