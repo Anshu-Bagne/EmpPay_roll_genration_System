@@ -40,6 +40,19 @@ class PayslipsTable extends Table
 
         $this->addBehavior('Timestamp');
 
+        $this->hasMany('Bonuses', [
+            'foreignKey' => 'payslip_id',
+            'saveStrategy' => 'append'
+        ]);
+
+        $this->hasMany('Deductions', [
+            'foreignKey' => 'payslip_id',
+            'saveStrategy' => 'append',
+            'dependent' => true,
+        ]);
+
+
+
         $this->belongsTo('Employees', [
             'foreignKey' => 'employee_id',
             'joinType' => 'INNER',

@@ -44,6 +44,10 @@ class BonusesTable extends Table
             'foreignKey' => 'employee_id',
             'joinType' => 'INNER',
         ]);
+
+        $this->belongsTo('Payslips', [
+            'foreignKey'=>'payslip_id'
+            ]);
     }
 
     /**
@@ -176,5 +180,19 @@ class BonusesTable extends Table
         }
 
         return ['success' => true];
+    }
+
+    public function getBonusTypeOptions()
+    {
+        return $this->find()
+        ->select(['type'])
+        ->distinct(['type'])
+        ->order(['type' => 'ASC'])
+        ->combine('type', 'type')
+        ->toArray();
+    }
+    public function getBonusTotal(array $bonuses)
+    {
+        return array_sum(array_column($bonuses, 'amount'));
     }
 }

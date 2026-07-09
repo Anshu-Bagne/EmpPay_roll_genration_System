@@ -118,24 +118,6 @@ class AttendancesTable extends Table
         return $attendanceMatrix;
     }
 
-    // public function saveAttendanceStatus(array $data)
-    // {
-    //     $attendance = $this->find()
-    //          ->where(['employee_id' =>$data['$employee_id'],'attendance_date' => $data['$attendance_date']])
-    //          ->first();
-
-    //     if (!$attendance) {
-    //         $attendance = $this->newEntity();
-    //     }
-    //     //patchdata rather
-    //     $attendance= $this->patchEntity($attendance, $data);
-    //     $result =$this->save($attendance);
-    //     if (!$result) {
-    //         debug($attendance->getErrors());
-    //     }
-    //     return $result;
-    // }
-
     public function saveAttendanceStatus(array $data)
     {
         $attendance = $this->find()
@@ -206,5 +188,52 @@ class AttendancesTable extends Table
         }
 
         return $missingDates;
+    }
+
+    public function getPayrollAttendanceSummary($employeeId, $month, $year)
+    {
+        $query = $this->find();
+
+        $summary = $query
+        ->select(['present_days' => $query->func()->sum(
+            'CASE WHEN status="present" THEN 1 ELSE 0 END'
+        ),
+
+                'leave_days' => $query->func()->sum(
+                    'CASE WHEN status="leave" THEN 1 ELSE 0 END'
+                ),
+
+                'absent_days' => $query->func()->sum(
+                    'CASE WHEN status="absent" THEN 1 ELSE 0 END'
+                )
+                 ])
+        ->where([
+            'employee_id' => $employeeId,
+            'MONTH(attendance_date)' => $month,
+            'YEAR(attendance_date)' => $year
+        ])
+        ->enableHydration(false)
+        ->first();
+
+        return $summary;
+    }
+
+    public function getWorkingDays($month, $year)
+    {
+        $daysInMonth = cal_days_in_month(
+            CAL_GREGORIAN,
+            $month,
+            $year
+        );
+
+        $sundays = 0;
+
+        for ($day = 1; $day <= $daysInMonth; $day++) {
+            if (date('w', strtotime($year . '-' . $month . '-' . $day)) == 0) {
+                $sundays++;
+            }
+        }
+
+        return $daysInMonth - $sundays;
     }
 }

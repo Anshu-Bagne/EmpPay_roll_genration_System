@@ -216,7 +216,7 @@ class EmployeesTable extends Table
     }
 
     //attendence of emp
-    public function getEmployeeAttendance(mixed $attendanceDate, $statusfilter=null)
+    public function getEmployeeAttendance($attendanceDate, $statusfilter=null)
     {
         $query= $this->find()
          ->contain(['Attendances'=> function ($q) use ($attendanceDate) {
@@ -244,7 +244,7 @@ class EmployeesTable extends Table
     }
 
     //payroll functions
-    public function getPayrollEmployees(mixed $lastDate)
+    public function getPayrollEmployees($lastDate)
     {
         return $this->find()
         ->contain(['Departments','Designations'])
@@ -273,5 +273,17 @@ class EmployeesTable extends Table
             }
         )
         ->toArray();
+    }
+    public function getEmployeeWithPayrollInfo($employeeId)
+    {
+        return $this->find()
+        ->contain([
+            'Departments',
+            'Designations'
+        ])
+        ->where([
+            'Employees.id' => $employeeId
+        ])
+        ->first();
     }
 }

@@ -45,6 +45,8 @@ class Payslip extends Entity
         'payroll_year' => true,
         'working_days' => true,
         'present_days' => true,
+        'bonuses' => true,
+        'deductions' => true,
         'leave_days' => true,
         'base_salary' => true,
         'salary_earned' => true,
