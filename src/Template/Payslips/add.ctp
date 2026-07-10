@@ -88,7 +88,6 @@
 
 </table>
 
-
          <?= $this->Form->control('payroll_year', [
                 'type'=>'number',
              'value'=>date('Y')
@@ -109,7 +108,7 @@
                                 <th>Bonus Type</th>
                                 <th>Amount</th>
                                 <th>Remarks</th>
-                                <th width="70"></th>
+                                <th width="100"></th>
                         </tr>
                   </thead> 
                         <tbody id="bonusBody"></tbody>
@@ -177,31 +176,32 @@
 </tr>
 
 </table>
+     <!-- Hidden Payroll Fields -->
+
+<?= $this->Form->hidden('base_salary', ['id' => 'hiddenBaseSalary']) ?>
+<?= $this->Form->hidden('working_days', [ 'id' => 'hiddenWorkingDays']) ?>
+<?= $this->Form->hidden('present_days', ['id' => 'hiddenPresentDays']) ?>
+<?= $this->Form->hidden('salary_earned', ['id' => 'hiddenSalaryEarned']) ?>
+<?= $this->Form->hidden('pf_amount', ['id' => 'hiddenPF']) ?>
+<?= $this->Form->hidden('tds_amount', [ 'id' => 'hiddenTDS']) ?>
+<?= $this->Form->hidden('bonus_total', ['id' => 'hiddenBonusTotal']) ?>
+<?= $this->Form->hidden('deduction_total', [ 'id' => 'hiddenDeductionTotal']) ?>
+<?= $this->Form->hidden('unpaid_leave_deduction', [ 'id' => 'hiddenUnpaidLeave']) ?>
+<?= $this->Form->hidden('net_salary', [ 'id' => 'hiddenNetSalary']) ?>
                
     </fieldset>
     <?= $this->Form->button(__('Submit')) ?>
     <?= $this->Form->end() ?>
 
     <?php
-
-$bonusDropdown = '';
-
-foreach ($bonusOptions as $value => $label) {
-    $bonusDropdown .='<option value="' .h($value) .'">' .h($label) .'</option>';
-}
-
-$deductionDropdown = '';
-
-foreach ($deductionOptions as $value => $label) {
-    $deductionDropdown .=
-        '<option value="' .
-        h($value) .
-        '">' .
-        h($label) .
-        '</option>';
-}
-
-?>
+    $bonusDropdown = '';
+          foreach ($bonusOptions as $value => $label) {
+              $bonusDropdown .='<option value="' .h($value) .'">' .h($label) .'</option>';
+          }
+    $deductionDropdown = '';
+          foreach ($deductionOptions as $value => $label) {
+              $deductionDropdown .='<option value="' .h($value) .'">' .h($label) .'</option>';
+          } ?>
 
 <style>
 .remove-btn{
@@ -223,13 +223,11 @@ foreach ($deductionOptions as $value => $label) {
     transform:scale(1.08);
 }
 </style>
-        
+    
     <script>
-
-
        let bonusIndex = 0;
       let deductionIndex = 0;
-         $('#addBonus').click(function () {
+$('#addBonus').click(function () {
     let row =`
         <tr>
             <td>
@@ -259,7 +257,6 @@ foreach ($deductionOptions as $value => $label) {
             </td>
         </tr>
     `;
-
     $('#bonusBody').append(row);
     bonusIndex++;
     loadPayrollPreview();
@@ -274,12 +271,10 @@ $(document).on('click','.removeBonus',function(){
 $(document).on('keyup change','.bonus-amount,.bonus-type',
     function () {
         loadPayrollPreview();
-
     }
 );
 
 $('#addDeduction').click(function(){
-
     let row =`
         <tr>
             <td>
@@ -315,36 +310,28 @@ $('#addDeduction').click(function(){
     $('#deductionBody').append(row);
     deductionIndex++;
     loadPayrollPreview();
-
 });
-$(document).on('click','.removeDeduction',function(){
 
+$(document).on('click','.removeDeduction',function(){
     $(this).closest('tr').remove();
     loadPayrollPreview();
-
 });
 
 // Whenever deduction amount changes
 $(document).on('keyup change','.deduction-amount,select[name*="deductions"]',
     function () {
-
         loadPayrollPreview();
-
     }
 );
-
-
       //  load the data of emp payroll
 $('#employee-id, #payroll-month, #payroll-year').change(function () {
     loadPayrollPreview();
 });
 
-   function loadPayrollPreview() {
-
+  function loadPayrollPreview() {
     let employeeId = $('#employee-id').val();
     let month = $('#payroll-month').val();
     let year = $('#payroll-year').val();
-
     if (employeeId == '' || month == '' || year == '') {
         return;
     }
@@ -354,43 +341,28 @@ $('#employee-id, #payroll-month, #payroll-year').change(function () {
     $('#bonusBody tr').each(function () {
 
         bonuses.push({
-
             type: $(this).find('.bonus-type').val(),
-
             amount: parseFloat($(this).find('.bonus-amount').val()) || 0
-
         });
-
     });
 
     let deductions = [];
-
     $('#deductionBody tr').each(function () {
-
         deductions.push({
             type: $(this).find('select').val(),
             amount: parseFloat($(this).find('.deduction-amount').val()) || 0
-
         });
-
     });
 
     $.ajax({
-
         type: 'POST',
-
         url: "<?= $this->Url->build(['action'=>'getEmployeePayrollDetails']) ?>",
-
         data: {
-
             employee_id: employeeId,
             payroll_month: month,
             payroll_year: year,
-
             bonuses: bonuses,
-
             deductions: deductions
-
         },
 
         headers: {
@@ -401,13 +373,10 @@ $('#employee-id, #payroll-month, #payroll-year').change(function () {
         dataType: 'json',
 
         success: function (response) {
-
+            console.log(response);
             updatePreview(response);
-
         }
-
     });
-
 }
 
 function updatePreview(response){
@@ -421,7 +390,6 @@ function updatePreview(response){
     $('#leaveDays').text(response.leave_days);
     $('#workingDays').text(response.working_days);
     $('#absentDays').text(response.absent_days);
-
     // Preview
     $('#previewBaseSalary').text(response.base_salary);
     $('#previewBonus').text(response.bonus_total);
@@ -431,6 +399,17 @@ function updatePreview(response){
     $('#previewSalaryEarned').text(response.salary_earned);
     $('#previewTotalDeduction').text(response.total_deduction);
     $('#previewNetSalary').text(response.net_salary);
+    //hidden val
+    $('#hiddenBaseSalary').val(response.base_salary);
+    $('#hiddenWorkingDays').val(response.working_days);
+    $('#hiddenPresentDays').val(response.present_days);
+    $('#hiddenSalaryEarned').val(response.salary_earned);
+    $('#hiddenPF').val(response.pf_amount);
+    $('#hiddenTDS').val(response.tds_amount);
+    $('#hiddenBonusTotal').val(response.bonus_total);
+    $('#hiddenDeductionTotal').val(response.total_deduction);
+    $('#hiddenUnpaidLeave').val(response.unpaid_leave_deduction);
+    $('#hiddenNetSalary').val(response.net_salary);
 
 }
 

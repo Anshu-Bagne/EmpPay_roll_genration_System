@@ -61,25 +61,6 @@ class PayslipsController extends AppController
 
         if ($this->request->is('post')) {
             $payslip = $this->Payslips->patchEntity($payslip, $this->request->getData(), ['associated'=>['Bonuses','Deductions']]);
-            $employeePayroll = $this->calculateEmployeePayroll(
-                $payslip->employee_id,
-                $payslip->payroll_month,
-                $payslip->payroll_year
-            );
-
-            $payslip->base_salary = $employeePayroll->monthly_salary;
-            $payslip->working_days = $employeePayroll->working_days;
-            $payslip->present_days = $employeePayroll->paid_days;
-            $payslip->salary_earned = $employeePayroll->salary_earned;
-            $payslip->pf_amount = $employeePayroll->pf_amount;
-            $payslip->tds_amount = $employeePayroll->tds_amount;
-            $payslip->unpaid_leave_deduction =$employeePayroll->unpaid_leave_deduction;
-
-            $bonusTotal = $this->Payslips->Bonuses->getBonusTotal($this->request->getData('bonuses') ?? []);
-            $manualDeduction = $this->Payslips->Deductions->getDeductionTotal($this->request->getData('deductions') ?? []);
-            $payslip->bonus_total = $employeePayroll->bonus_total + $bonusTotal;
-            $payslip->deduction_total =$employeePayroll->pf_amount +$employeePayroll->tds_amount +$employeePayroll->unpaid_leave_deduction +$employeePayroll->manual_deduction +$manualDeduction;
-            $payslip->net_salary =$employeePayroll->salary_earned +$payslip->bonus_total -$payslip->deduction_total;
 
             if (!empty($payslip->bonuses)) {
                 foreach ($payslip->bonuses as $bonus) {
@@ -107,12 +88,20 @@ class PayslipsController extends AppController
                 return $this->redirect(['action' => 'add']);
             }
 
+
             if ($this->Payslips->save($payslip)) {
                 $this->Flash->success(__('Payslip has been saved successfully.'));
 
                 return $this->redirect(['action' => 'index']);
             } else {
-                $this->Flash->error(__('Unable to save payslip.'));
+                debug($this->request->getData());
+
+                debug($payslip->getErrors());
+
+                debug($payslip);
+
+                die;
+                //  $this->Flash->error(__('Unable to save payslip.'));
             }
         }
 
@@ -640,13 +629,14 @@ class PayslipsController extends AppController
         'salary_earned' => $employee->salary_earned,
         'pf_amount' => $employee->pf_amount,
         'tds_amount' => $employee->tds_amount,
+        'unpaid_leave_deduction' => $employee->unpaid_leave_deduction,
         'bonus_total' => $bonusTotal,
         'manual_deduction' => $manualDeduction,
         'total_deduction' => $totalDeduction,
         'net_salary' => $netSalary,
-        'present_days' => $attendance['present_days'] ?? 0,
-        'leave_days' => $attendance['leave_days'] ?? 0,
-        'absent_days' => $attendance['absent_days'] ?? 0
+        'present_days' => $employee->present_days ?? 0,
+        'leave_days' => $employee->leave_days?? 0,
+        'absent_days' => $employee->absent_days ?? 0
         ]));
     }
 }
