@@ -244,15 +244,20 @@ class EmployeesTable extends Table
     }
 
     //payroll functions
-    public function getPayrollEmployees($lastDate)
+    public function getPayrollEmployees($lastDate, $payrollMonth, $payrollYear)
     {
         return $this->find()
-        ->contain(['Departments','Designations'])
+        ->contain(['Departments', 'Designations'])
         ->where([
             'Employees.status' => 'active',
             'Employees.joining_date <=' => $lastDate
         ])
-        ->toArray();
+        ->notMatching('Payslips', function ($q) use ($payrollMonth, $payrollYear) {
+            return $q->where([
+                'Payslips.payroll_month' => $payrollMonth,
+                'Payslips.payroll_year' => $payrollYear
+            ]);
+        });
     }
 
 

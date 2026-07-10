@@ -77,9 +77,9 @@ class PayslipsController extends AppController
 
             $bonusTotal = $this->Payslips->Bonuses->getBonusTotal($this->request->getData('bonuses') ?? []);
             $manualDeduction = $this->Payslips->Deductions->getDeductionTotal($this->request->getData('deductions') ?? []);
-            $payslip->bonus_total = $bonusTotal;
-            $payslip->deduction_total =$employeePayroll->pf_amount +$employeePayroll->tds_amount +$employeePayroll->unpaid_leave_deduction +$manualDeduction;
-            $payslip->net_salary =$employeePayroll->salary_earned + $bonusTotal -$payslip->deduction_total;
+            $payslip->bonus_total = $employeePayroll->bonus_total + $bonusTotal;
+            $payslip->deduction_total =$employeePayroll->pf_amount +$employeePayroll->tds_amount +$employeePayroll->unpaid_leave_deduction +$employeePayroll->manual_deduction +$manualDeduction;
+            $payslip->net_salary =$employeePayroll->salary_earned +$payslip->bonus_total -$payslip->deduction_total;
 
             if (!empty($payslip->bonuses)) {
                 foreach ($payslip->bonuses as $bonus) {
@@ -88,7 +88,6 @@ class PayslipsController extends AppController
                     $bonus->payroll_year = $payslip->payroll_year;
                 }
             }
-
             if (!empty($payslip->deductions)) {
                 foreach ($payslip->deductions as $deduction) {
                     $deduction->employee_id = $payslip->employee_id;
@@ -96,6 +95,18 @@ class PayslipsController extends AppController
                     $deduction->payroll_year = $payslip->payroll_year;
                 }
             }
+            // check payslip generated or not
+            $existingPayslip = $this->Payslips->find()->where([
+                  'employee_id'   => $payslip->employee_id,
+                  'payroll_month' => $payslip->payroll_month,
+                  'payroll_year'  => $payslip->payroll_year
+                   ])->first();
+
+            if ($existingPayslip) {
+                $this->Flash->error(__('Payslip has already been generated for this employee for the selected payroll period.'));
+                return $this->redirect(['action' => 'add']);
+            }
+
             if ($this->Payslips->save($payslip)) {
                 $this->Flash->success(__('Payslip has been saved successfully.'));
 
@@ -119,7 +130,12 @@ class PayslipsController extends AppController
         $bonusOptions = $this->Payslips->Bonuses->getBonusTypeOptions();
         $deductionOptions = $this->Payslips->Deductions->getDeductionTypeOptions();
 
-        $this->set(compact('payslip', 'employees', 'bonusOptions', 'deductionOptions'));
+        $this->set(compact(
+            'payslip',
+            'employees',
+            'bonusOptions',
+            'deductionOptions'
+        ));
     }
     /**
      * Edit method
@@ -186,13 +202,8 @@ class PayslipsController extends AppController
         // Validate Future Payroll Month
 
         if (!empty($payrollMonth) && !empty($payrollYear)) {
-            if (
-            $payrollYear > $currentYear ||
-            (
-                $payrollYear == $currentYear &&
-                $payrollMonth > $currentMonth
-            )
-        ) {
+            if ($payrollYear > $currentYear ||
+            ($payrollYear == $currentYear &&$payrollMonth > $currentMonth)) {
                 $this->Flash->error(
                     __('Payroll cannot be generated for a future month.')
                 );
@@ -240,8 +251,6 @@ class PayslipsController extends AppController
         }
 
         // Calculate Payroll
-
-
         if (!empty($payrollMonth) && !empty($payrollYear)) {
             $result = $this->calculatePayroll($payrollMonth, $payrollYear);
 
@@ -278,7 +287,7 @@ class PayslipsController extends AppController
         $workingDays = $this->Attendances->getWorkingDays($payrollMonth, $payrollYear);
 
         // Load Employees
-        $employees = $this->Payslips->Employees->getPayrollEmployees($lastDate);
+        $employees = $this->Payslips->Employees->getPayrollEmployees($lastDate, $payrollMonth, $payrollYear);
         $attendanceTable = $this->Payslips->Employees->Attendances;
 
         $canGeneratePayroll = true;
@@ -606,33 +615,38 @@ class PayslipsController extends AppController
         $employeeId = $this->request->getData('employee_id');
         $month      = $this->request->getData('payroll_month');
         $year       = $this->request->getData('payroll_year');
+        $bonuses = $this->request->getData('bonuses', []);
+        $deductions = $this->request->getData('deductions', []);
 
-        $employee = $this->Payslips
-        ->Employees
-        ->getEmployeeWithPayrollInfo($employeeId);
+        $employee = $this->calculateEmployeePayroll($employeeId, $month, $year);
 
-        $attendance = $this->Attendances
-        ->getPayrollAttendanceSummary(
-            $employeeId,
-            $month,
-            $year
-        );
-        $workingDays = $this->Attendances->getWorkingDays($month, $year);
+        $bonusTotal = $this->Payslips->Bonuses ->getBonusTotal($bonuses);
+        $manualDeduction = $this->Payslips->Deductions->getDeductionTotal($deductions);
+        $totalDeduction =$employee->pf_amount +$employee->tds_amount +$employee->unpaid_leave_deduction +$manualDeduction;
+        $netSalary =$employee->salary_earned +$bonusTotal -$totalDeduction;
 
         return $this->response
         ->withType('application/json')
         ->withStringBody(json_encode([
             'success' => true,
-            'employee_code' => $employee->employee_code,
-            'name' => $employee->name,
-            'department' => $employee->department->name,
-            'designation' => $employee->designation->name,
-            'joining_date' => $employee->joining_date->format('d-M-Y'),
-            'base_salary' => $employee->base_salary,
-            'working_days' => $workingDays,
-            'present_days' => $attendance['present_days'] ?? 0,
-            'leave_days' => $attendance['leave_days'] ?? 0,
-            'absent_days' => $attendance['absent_days'] ?? 0
+
+        'employee_code' => $employee->employee_code,
+        'name' => $employee->name,
+        'department' => $employee->department->name,
+        'designation' => $employee->designation->name,
+        'joining_date' => $employee->joining_date->format('d-M-Y'),
+        'base_salary' => $employee->monthly_salary,
+        'working_days' => $employee->working_days,
+        'salary_earned' => $employee->salary_earned,
+        'pf_amount' => $employee->pf_amount,
+        'tds_amount' => $employee->tds_amount,
+        'bonus_total' => $bonusTotal,
+        'manual_deduction' => $manualDeduction,
+        'total_deduction' => $totalDeduction,
+        'net_salary' => $netSalary,
+        'present_days' => $attendance['present_days'] ?? 0,
+        'leave_days' => $attendance['leave_days'] ?? 0,
+        'absent_days' => $attendance['absent_days'] ?? 0
         ]));
     }
 }

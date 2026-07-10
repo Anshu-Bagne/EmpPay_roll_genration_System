@@ -45,6 +45,50 @@
             'empty'=>'Select Month'
            ]); ?>
 
+           <table>
+<h4>Employee Summary</h4>
+<table width="100%">
+<tr>
+
+<th>Employee Code</th>
+<td id="employeeCode">-</td>
+
+<th>Joining Date</th>
+<td id="joiningDate">-</td>
+
+<th>Present Days</th>
+<td id="presentDays">0</td>
+
+<tr>
+
+<th>Department</th>
+<td id="department">-</td>
+
+<th>Base Salary</th>
+<td id="baseSalary">0</td>
+
+<th>Leave Days</th>
+<td id="leaveDays">0</td>
+
+ 
+</tr>
+
+
+<tr>
+
+<th>Designation</th>
+<td id="designation">-</td>
+<th>Working Days</th>
+    <td id="workingDays">0</td>
+
+
+<th>Absent Days</th>
+<td id="absentDays">0</td>
+</tr>
+
+</table>
+
+
          <?= $this->Form->control('payroll_year', [
                 'type'=>'number',
              'value'=>date('Y')
@@ -65,7 +109,7 @@
                                 <th>Bonus Type</th>
                                 <th>Amount</th>
                                 <th>Remarks</th>
-                                <th width="100">Action</th>
+                                <th width="70"></th>
                         </tr>
                   </thead> 
                         <tbody id="bonusBody"></tbody>
@@ -84,7 +128,7 @@
                                 <th>Deduction Type</th>
                                 <th>Amount</th>
                                 <th>Remarks</th>
-                                <th width="100">Action</th>
+                                <th width="100"></th>
                          </tr>
                        </thead>
                         <tbody id="deductionBody"></tbody>
@@ -133,7 +177,6 @@
 </tr>
 
 </table>
-
                
     </fieldset>
     <?= $this->Form->button(__('Submit')) ?>
@@ -159,49 +202,30 @@ foreach ($deductionOptions as $value => $label) {
 }
 
 ?>
-<h4>Employee Summary</h4>
-<table width="100%">
-<tr>
 
-<th>Employee Code</th>
-<td id="employeeCode">-</td>
+<style>
+.remove-btn{
+    width:32px;
+    height:32px;
+    padding:0;
+    border:none;
+    border-radius:50%;
+    background:#dc3545;
+    color:#fff;
+    font-size:18px;
+    font-weight:bold;
+    cursor:pointer;
+    transition:.2s;
+}
 
-<th>Joining Date</th>
-<td id="joiningDate">-</td>
-
-<th>Present Days</th>
-<td id="presentDays">0</td>
-
-<tr>
-
-<th>Department</th>
-<td id="department">-</td>
-
-<th>Base Salary</th>
-<td id="baseSalary">0</td>
-
-<th>Leave Days</th>
-<td id="leaveDays">0</td>
-
- 
-</tr>
-
-
-<tr>
-
-<th>Designation</th>
-<td id="designation">-</td>
-<th>Working Days</th>
-    <td id="workingDays">0</td>
-
-
-<th>Absent Days</th>
-<td id="absentDays">0</td>
-</tr>
-
-</table>
+.remove-btn:hover{
+    background:#b02a37;
+    transform:scale(1.08);
+}
+</style>
         
     <script>
+
 
        let bonusIndex = 0;
       let deductionIndex = 0;
@@ -228,8 +252,9 @@ foreach ($deductionOptions as $value => $label) {
             <td>
                 <button
                     type="button"
-                    class="removeBonus">
-                    Remove
+                    class="removeBonus remove-btn"
+                    title="Remove Bonus">
+                     ✖
                 </button>
             </td>
         </tr>
@@ -237,19 +262,21 @@ foreach ($deductionOptions as $value => $label) {
 
     $('#bonusBody').append(row);
     bonusIndex++;
+    loadPayrollPreview();
 });
        
 $(document).on('click','.removeBonus',function(){
     $(this).closest('tr').remove();
-    calculatePreview();
+   loadPayrollPreview();
 });
  
 // Whenever bonus amount changes
-$(document).on('keyup change', '.bonus-amount', function () {
+$(document).on('keyup change','.bonus-amount,.bonus-type',
+    function () {
+        loadPayrollPreview();
 
-    calculatePreview();
-
-});
+    }
+);
 
 $('#addDeduction').click(function(){
 
@@ -276,123 +303,166 @@ $('#addDeduction').click(function(){
                     name="deductions[${deductionIndex}][remarks]">
           </td>
             <td>
-                <button type="button" class="removeDeduction">
-                    Remove
+                <button  type="button"
+                        class="removeDeduction remove-btn"
+                        title="Remove Deduction">
+                         ✖
                 </button>
             </td>
         </tr>
     `;
 
     $('#deductionBody').append(row);
-
     deductionIndex++;
+    loadPayrollPreview();
 
 });
 $(document).on('click','.removeDeduction',function(){
 
     $(this).closest('tr').remove();
-    calculatePreview();
+    loadPayrollPreview();
 
 });
 
 // Whenever deduction amount changes
-$(document).on('keyup change', '.deduction-amount', function () {
+$(document).on('keyup change','.deduction-amount,select[name*="deductions"]',
+    function () {
 
-    calculatePreview();
-});
+        loadPayrollPreview();
+
+    }
+);
 
 
       //  load the data of emp payroll
+$('#employee-id, #payroll-month, #payroll-year').change(function () {
+    loadPayrollPreview();
+});
 
-$('#employee-id, #payroll-month, #payroll-year').change(function(){
+   function loadPayrollPreview() {
 
     let employeeId = $('#employee-id').val();
     let month = $('#payroll-month').val();
     let year = $('#payroll-year').val();
 
-    if(employeeId=='' || month=='' || year==''){
+    if (employeeId == '' || month == '' || year == '') {
         return;
     }
 
+    let bonuses = [];
+
+    $('#bonusBody tr').each(function () {
+
+        bonuses.push({
+
+            type: $(this).find('.bonus-type').val(),
+
+            amount: parseFloat($(this).find('.bonus-amount').val()) || 0
+
+        });
+
+    });
+
+    let deductions = [];
+
+    $('#deductionBody tr').each(function () {
+
+        deductions.push({
+            type: $(this).find('select').val(),
+            amount: parseFloat($(this).find('.deduction-amount').val()) || 0
+
+        });
+
+    });
+
     $.ajax({
 
-        type:'POST',
+        type: 'POST',
 
-        url:"<?= $this->Url->build(['action'=>'getEmployeePayrollDetails']) ?>",
-        data:{
-            employee_id:employeeId,
-            payroll_month:month,
-            payroll_year:year
+        url: "<?= $this->Url->build(['action'=>'getEmployeePayrollDetails']) ?>",
+
+        data: {
+
+            employee_id: employeeId,
+            payroll_month: month,
+            payroll_year: year,
+
+            bonuses: bonuses,
+
+            deductions: deductions
+
         },
 
-        headers:{
+        headers: {
             "X-CSRF-Token":
             $('meta[name="csrfToken"]').attr('content')
         },
 
-        dataType:'json',
+        dataType: 'json',
 
-        success:function(response){
+        success: function (response) {
 
-            $('#employeeCode').text(response.employee_code);
-            $('#department').text(response.department);
-            $('#designation').text(response.designation);
-            $('#joiningDate').text(response.joining_date);
-            $('#baseSalary').text(response.base_salary);
-            $('#presentDays').text(response.present_days);
-            $('#leaveDays').text(response.leave_days);
-            $('#workingDays').text(response.working_days);
-            $('#absentDays').text(response.absent_days);
-            calculatePreview();
+            updatePreview(response);
 
         }
 
     });
 
-});
+}
 
-    function calculatePreview(){ 
-        let baseSalary =parseFloat($('#baseSalary').text()) || 0;
-        let presentDays =parseInt($('#presentDays').text()) || 0;
-        let leaveDays =parseInt($('#leaveDays').text()) || 0;
-        let workingDays =parseInt($('#workingDays').text()) || 0;
+function updatePreview(response){
+
+    $('#employeeCode').text(response.employee_code);
+    $('#department').text(response.department);
+    $('#designation').text(response.designation);
+    $('#joiningDate').text(response.joining_date);
+    $('#baseSalary').text(response.base_salary);
+    $('#presentDays').text(response.present_days);
+    $('#leaveDays').text(response.leave_days);
+    $('#workingDays').text(response.working_days);
+    $('#absentDays').text(response.absent_days);
+
+    // Preview
+    $('#previewBaseSalary').text(response.base_salary);
+    $('#previewBonus').text(response.bonus_total);
+    $('#previewPF').text(response.pf_amount);
+    $('#previewTDS').text(response.tds_amount);
+    $('#previewManualDeduction').text(response.manual_deduction);
+    $('#previewSalaryEarned').text(response.salary_earned);
+    $('#previewTotalDeduction').text(response.total_deduction);
+    $('#previewNetSalary').text(response.net_salary);
+
+}
+
+    // function calculatePreview(){ 
+    //     let baseSalary =parseFloat($('#baseSalary').text()) || 0;
+    //     let presentDays =parseInt($('#presentDays').text()) || 0;
+    //     let leaveDays =parseInt($('#leaveDays').text()) || 0;
+    //     let woringDays =parseInt($('#workingDays').text()) || 0;
          
-        let totalBonus = 0;
-        $('.bonus-amount').each(function(){
-            totalBonus +=parseFloat($(this).val()) || 0;
-        });
-
-        let manualDeduction = 0;
-        $('.deduction-amount').each(function(){
-            manualDeduction +=parseFloat($(this).val()) || 0;
-        });
-
-        let salaryEarned =(baseSalary / workingDays) *(presentDays + leaveDays);
-        let pf =salaryEarned * 0.12;
-        let tds =salaryEarned * 0.10;
-        let totalDeduction =pf +tds +manualDeduction;
-        let netSalary =salaryEarned +totalBonus -totalDeduction;
-         
-        console.log("Base Salary:", baseSalary);
-console.log("Working Days:", workingDays);
-console.log("Present:", presentDays);
-console.log("Leave:", leaveDays);
-console.log("Salary Earned:", salaryEarned);
-console.log("PF:", pf);
-console.log("TDS:", tds);
-        //display 
-        $('#previewBaseSalary').text(baseSalary.toFixed(2));
-        $('#previewBonus').text(totalBonus.toFixed(2));
-        $('#previewPF').text(pf.toFixed(2));
-        $('#previewTDS').text(tds.toFixed(2));
-        $('#previewManualDeduction').text(manualDeduction.toFixed(2));
-        $('#previewSalaryEarned').text(salaryEarned.toFixed(2));
-        $('#previewTotalDeduction').text(totalDeduction.toFixed(2));
-        $('#previewNetSalary').text(netSalary.toFixed(2));
-   
-   
-   
-    }
+    //     let totalBonus = 0;
+    //     $('.bonus-amount').each(function(){
+    //         totalBonus +=parseFloat($(this).val()) || 0;
+    //     });
+    //     let manualDeduction = 0;
+    //     $('.deduction-amount').each(function(){
+    //         manualDeduction +=parseFloat($(this).val()) || 0;
+    //     });
+    //     let salaryEarned =(baseSalary / workingDays) *(presentDays + leaveDays);
+    //     let pf =salaryEarned * 0.12;
+    //     let tds =salaryEarned * 0.10;
+    //     let totalDeduction =pf +tds +manualDeduction;
+    //     let netSalary =salaryEarned +totalBonus -totalDeduction;
+    //     //display 
+    //     $('#previewBaseSalary').text(baseSalary.toFixed(2));
+    //     $('#previewBonus').text(totalBonus.toFixed(2));
+    //     $('#previewPF').text(pf.toFixed(2));
+    //     $('#previewTDS').text(tds.toFixed(2));
+    //     $('#previewManualDeduction').text(manualDeduction.toFixed(2));
+    //     $('#previewSalaryEarned').text(salaryEarned.toFixed(2));
+    //     $('#previewTotalDeduction').text(totalDeduction.toFixed(2));
+    //     $('#previewNetSalary').text(netSalary.toFixed(2));
+    // }
 
 
 
