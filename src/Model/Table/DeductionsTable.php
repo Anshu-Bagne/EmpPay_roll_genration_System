@@ -2,6 +2,8 @@
 
 namespace App\Model\Table;
 
+use ArrayObject;
+use Cake\Event\Event;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
@@ -116,5 +118,18 @@ class DeductionsTable extends Table
     public function getDeductionTotal(array $deductions)
     {
         return array_sum(array_column($deductions, 'amount'));
+    }
+
+
+    public function beforeMarshal(
+        Event $event,
+        ArrayObject $data,
+        ArrayObject $options
+    ) {
+        if (isset($options['employee_id'])) {
+            $data['employee_id'] = $options['employee_id'];
+            $data['payroll_month'] = $options['payroll_month'];
+            $data['payroll_year'] = $options['payroll_year'];
+        }
     }
 }

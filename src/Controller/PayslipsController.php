@@ -60,64 +60,96 @@ class PayslipsController extends AppController
         $payslip = $this->Payslips->newEntity();
 
         if ($this->request->is('post')) {
-            $payslip = $this->Payslips->patchEntity($payslip, $this->request->getData(), ['associated'=>['Bonuses','Deductions']]);
-
-            if (!empty($payslip->bonuses)) {
-                foreach ($payslip->bonuses as $bonus) {
-                    $bonus->employee_id = $payslip->employee_id;
-                    $bonus->payroll_month = $payslip->payroll_month;
-                    $bonus->payroll_year = $payslip->payroll_year;
-                }
-            }
-            if (!empty($payslip->deductions)) {
-                foreach ($payslip->deductions as $deduction) {
-                    $deduction->employee_id = $payslip->employee_id;
-                    $deduction->payroll_month = $payslip->payroll_month;
-                    $deduction->payroll_year = $payslip->payroll_year;
-                }
-            }
-            // check payslip generated or not
-            $existingPayslip = $this->Payslips->find()->where([
-                  'employee_id'   => $payslip->employee_id,
-                  'payroll_month' => $payslip->payroll_month,
-                  'payroll_year'  => $payslip->payroll_year
-                   ])->first();
+            $data = $this->request->getData();
+            // Check duplicate payslip
+            $existingPayslip = $this->Payslips->find()
+            ->where([
+                'employee_id'   => $data['employee_id'],
+                'payroll_month' => $data['payroll_month'],
+                'payroll_year'  => $data['payroll_year']
+            ])
+            ->first();
 
             if ($existingPayslip) {
-                $this->Flash->error(__('Payslip has already been generated for this employee for the selected payroll period.'));
+                $this->Flash->error(
+                    __('Payslip has already been generated for this employee for the selected payroll period.')
+                );
+
                 return $this->redirect(['action' => 'add']);
             }
 
+            /*
+             * TODO (Review)
+             * Remove this preparation later by shifting it to
+             * model callbacks or changing schema.
+             */
+            if (!empty($data['bonuses'])) {
+                foreach ($data['bonuses'] as $key => $bonus) {
+                    $data['bonuses'][$key]['employee_id'] = $data['employee_id'];
+                    $data['bonuses'][$key]['payroll_month'] = $data['payroll_month'];
+                    $data['bonuses'][$key]['payroll_year'] = $data['payroll_year'];
+                }
+            }
+
+            if (!empty($data['deductions'])) {
+                foreach ($data['deductions'] as $key => $deduction) {
+                    $data['deductions'][$key]['employee_id'] = $data['employee_id'];
+                    $data['deductions'][$key]['payroll_month'] = $data['payroll_month'];
+                    $data['deductions'][$key]['payroll_year'] = $data['payroll_year'];
+                }
+            }
+
+            $payslip = $this->Payslips->patchEntity(
+                $payslip,
+                $data,
+                [
+                'associated' => [
+                    'Bonuses',
+                    'Deductions'
+                ]
+            ]
+            );
 
             if ($this->Payslips->save($payslip)) {
-                $this->Flash->success(__('Payslip has been saved successfully.'));
+                $this->Flash->success(
+                    __('Payslip has been saved successfully.')
+                );
 
                 return $this->redirect(['action' => 'index']);
-            } else {
-                debug($this->request->getData());
-
-                debug($payslip->getErrors());
-
-                debug($payslip);
-
-                die;
-                //  $this->Flash->error(__('Unable to save payslip.'));
             }
+
+            $this->Flash->error(
+                __('Unable to save payslip.')
+            );
+
+            debug($payslip->getErrors());
         }
 
-
         $employees = $this->Payslips->Employees->find()
-         ->select(['id','employee_code','name'])
-         ->where(['status' => 'active'])
-         ->order(['employee_code' => 'ASC'])
-         ->all()
-          ->combine('id', function ($employee) {
-              return $employee->employee_code . ' - ' . $employee->name;
-          })
-         ->toArray();
+        ->select([
+            'id',
+            'employee_code',
+            'name'
+        ])
+        ->where([
+            'status' => 'active'
+        ])
+        ->order([
+            'employee_code' => 'ASC'
+        ])
+        ->all()
+        ->combine('id', function ($employee) {
+            return $employee->employee_code . ' - ' . $employee->name;
+        })
+        ->toArray();
 
-        $bonusOptions = $this->Payslips->Bonuses->getBonusTypeOptions();
-        $deductionOptions = $this->Payslips->Deductions->getDeductionTypeOptions();
+        $bonusOptions = $this->Payslips
+        ->Bonuses
+        ->getBonusTypeOptions();
+
+        $deductionOptions = $this->Payslips
+        ->Deductions
+        ->getDeductionTypeOptions();
 
         $this->set(compact(
             'payslip',
@@ -640,3 +672,125 @@ class PayslipsController extends AppController
         ]));
     }
 }
+
+
+
+
+
+    // public function add()
+    // {
+    //     $departments = [
+    //       'Leadership' => 'Leadership',
+    //       'HR'         => 'HR',
+    //       'Marketing'  => 'Marketing',
+    //       'Sales'      => 'Sales',
+    //       'Finance'    => 'Finance',
+    //       'Support'    => 'Support',
+    //       'IT'         => 'IT',
+    //       'R&D'        => 'R&D',
+    //       'Operations' => 'Operations',
+    //       'Legal'      => 'Legal',
+    //     ];
+
+    //     $this->set(compact('departments'));
+
+    //     if ($this->request->is(['post', 'put'])) {
+    //         if ($this->request->getData('first_form')) {
+    //             $data           = $this->request->getData();
+    //             $employee_id    = (int) $data['employee_id'];
+    //             $datetoFind     = $data['year'] . '-' . $data['month'];
+    //             $monthName      = $this->getMonthNameSecond($data['month']);
+    //             $payrollPresent = $this->Payrolls->find()->where(['employee_id' => $employee_id, 'month' => $monthName, 'year' => $data['year']])->first();
+    //             if ($payrollPresent) {
+    //                 $payroll_id = $payrollPresent->id;
+    //                 $this->Flash->success(__('The payroll has been Generated Before.'));
+    //                 return $this->redirect(['action' => 'view', $datetoFind, $employee_id, $payroll_id]);
+    //             }
+    //             $employeeData = $this->Employees->find()
+    //                 ->where(['Employees.id' => $employee_id])
+    //                 ->contain(
+    //                     [
+    //                       'Attendances' => function ($q) use ($datetoFind) {
+    //                         return $q->where(
+    //                             [
+    //                               'Attendances.date LIKE' => $datetoFind . '%',
+    //                             ]
+    //                         );
+    //                       },
+    //                     ]
+    //                 );
+
+    //             if (!$employeeData) {
+    //                 $this->Flash->error('No data found for the given employee.');
+    //                 $this->render('add');
+    //                 return;
+    //             }
+
+    //             $employeeAttendanceArray = $employeeData->enableHydration(false)->toArray();
+
+    //             if (empty($employeeAttendanceArray)) {
+    //                 $this->Flash->error('No attendance records found.');
+    //                 $this->render('add');
+    //                 return;
+    //             }
+
+    //             $employeeAttendanceArray = $employeeAttendanceArray[0]["attendances"];
+
+    //             $totWorkingDays = $this->getWorkingDays($datetoFind);
+    //             $totPRE         = 0;
+    //             $totABS         = 0;
+    //             $totLEV         = 0;
+
+    //             foreach ($employeeAttendanceArray as $attenData) {
+    //                 if ($attenData["status"] == "present") {
+    //                     $totPRE++;
+    //                 } elseif ($attenData["status"] == "absent") {
+    //                     $totABS++;
+    //                 } elseif ($attenData["status"] == "leave") {
+    //                     $totLEV++;
+    //                 }
+    //             }
+
+    //             if (($totPRE + $totABS + $totLEV) != $totWorkingDays) {
+    //                 $this->Flash->error('Incorrect attendance record found For Given Period. Please Check Attendance data in Show Attendances');
+    //                 $this->render('add');
+    //                 return;
+    //             }
+
+    //             $employeeDataArray = $employeeData->enableHydration(false)->toArray();
+    //             $this->set(compact('totPRE', 'totABS', 'totLEV', 'totWorkingDays', 'datetoFind', 'employeeData'));
+    //             $this->render('add');
+    //         }
+
+    //         if ($this->request->getData('second_form')) {
+    //             $base_salary         = $this->request->getData('base_salary');
+    //             $employee_id         = $this->request->getData('employee_id');
+    //             $date                = $this->request->getData('date');
+    //             $payroll_adjustments = $this->request->getData('payroll_adjustments');
+    //             list($year, $month)  = explode('-', $date);
+
+    //             $data = [
+    //               'employee_id'         => $employee_id,
+    //               'month'               => $this->getMonthNameSecond($month),
+    //               'year'                => $year,
+    //               'payment_date'        => date('Y-m-d'),
+    //               'base_salary'         => $base_salary,
+    //               'payroll_adjustments' => $payroll_adjustments,
+    //             ];
+
+    //             $payroll = $this->Payrolls->newEntity(
+    //                 $data,
+    //                 [
+    //                   'associated' => ['PayrollAdjustments'],
+    //                 ]
+    //             );
+
+    //             if ($this->Payrolls->save($payroll)) {
+    //                 $this->Flash->success(__('The payroll has been saved.'));
+    //                 return $this->redirect(['action' => 'view', $date, $employee_id, $payroll->id]);
+    //             } else {
+    //                 $this->Flash->error(__('Unable to save the payroll. Please try again.'));
+    //             }
+    //         }
+    //     }
+    // }
