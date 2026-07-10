@@ -105,12 +105,12 @@ class DeductionsTable extends Table
 
     public function getDeductionTypeOptions()
     {
-        return $this->find('list', [
-        'keyField' => 'type',
-        'valueField' => 'type'
-    ])
-    ->distinct(['type'])
-    ->toArray();
+        return [
+        'Professional Tax'  => 'Professional Tax',
+        'Loan Recovery'     => 'Loan Recovery',
+        'Advance Salary'    => 'Advance Salary',
+        'Other'             => 'Other'
+    ];
     }
 
     public function getDeductionTotal(array $deductions)

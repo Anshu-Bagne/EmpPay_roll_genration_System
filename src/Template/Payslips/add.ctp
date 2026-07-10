@@ -66,7 +66,7 @@
                                 <th>Amount</th>
                                 <th>Remarks</th>
                                 <th width="100">Action</th>
-                            </tr>
+                        </tr>
                   </thead> 
                         <tbody id="bonusBody"></tbody>
                     </table>
@@ -144,12 +144,7 @@
 $bonusDropdown = '';
 
 foreach ($bonusOptions as $value => $label) {
-    $bonusDropdown .=
-        '<option value="' .
-        h($value) .
-        '">' .
-        h($label) .
-        '</option>';
+    $bonusDropdown .='<option value="' .h($value) .'">' .h($label) .'</option>';
 }
 
 $deductionDropdown = '';
@@ -220,7 +215,6 @@ foreach ($deductionOptions as $value => $label) {
                     class="bonus-type">
 
                     <option value="">Select</option><?= $bonusDropdown ?>
-                    <option value="Other">Other</option>
                 </select>
             </td>
             <td>

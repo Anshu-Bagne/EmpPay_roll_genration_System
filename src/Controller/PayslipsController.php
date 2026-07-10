@@ -75,36 +75,35 @@ class PayslipsController extends AppController
             $payslip->tds_amount = $employeePayroll->tds_amount;
             $payslip->unpaid_leave_deduction =$employeePayroll->unpaid_leave_deduction;
 
-            $bonusTotal = $this->Payslips->Bonuses->getBonusTotal($this->request->getData('bonuses'));
-            $manualDeduction = $this->Payslips->Deductions->getDeductionTotal($this->request->getData('deductions'));
+            $bonusTotal = $this->Payslips->Bonuses->getBonusTotal($this->request->getData('bonuses') ?? []);
+            $manualDeduction = $this->Payslips->Deductions->getDeductionTotal($this->request->getData('deductions') ?? []);
             $payslip->bonus_total = $bonusTotal;
             $payslip->deduction_total =$employeePayroll->pf_amount +$employeePayroll->tds_amount +$employeePayroll->unpaid_leave_deduction +$manualDeduction;
             $payslip->net_salary =$employeePayroll->salary_earned + $bonusTotal -$payslip->deduction_total;
 
-            foreach ($payslip->bonuses as $bonus) {
-                $bonus->employee_id = $payslip->employee_id;
-                $bonus->payroll_month = $payslip->payroll_month;
-                $bonus->payroll_year = $payslip->payroll_year;
+            if (!empty($payslip->bonuses)) {
+                foreach ($payslip->bonuses as $bonus) {
+                    $bonus->employee_id = $payslip->employee_id;
+                    $bonus->payroll_month = $payslip->payroll_month;
+                    $bonus->payroll_year = $payslip->payroll_year;
+                }
             }
-            foreach ($payslip->deductions as $deduction) {
-                $deduction->employee_id = $payslip->employee_id;
-                $deduction->payroll_month = $payslip->payroll_month;
-                $deduction->payroll_year = $payslip->payroll_year;
+
+            if (!empty($payslip->deductions)) {
+                foreach ($payslip->deductions as $deduction) {
+                    $deduction->employee_id = $payslip->employee_id;
+                    $deduction->payroll_month = $payslip->payroll_month;
+                    $deduction->payroll_year = $payslip->payroll_year;
+                }
             }
             if ($this->Payslips->save($payslip)) {
-                echo "Saved Successfully";
-                die;
+                $this->Flash->success(__('Payslip has been saved successfully.'));
+
+                return $this->redirect(['action' => 'index']);
             } else {
-                debug($payslip->getErrors());
-
-                debug($payslip->bonuses);
-
-                debug($payslip->deductions);
-
-                die;
+                $this->Flash->error(__('Unable to save payslip.'));
             }
         }
-        $this->Flash->error(__('unable to save payslip.'));
 
 
         $employees = $this->Payslips->Employees->find()
@@ -119,7 +118,6 @@ class PayslipsController extends AppController
 
         $bonusOptions = $this->Payslips->Bonuses->getBonusTypeOptions();
         $deductionOptions = $this->Payslips->Deductions->getDeductionTypeOptions();
-
 
         $this->set(compact('payslip', 'employees', 'bonusOptions', 'deductionOptions'));
     }

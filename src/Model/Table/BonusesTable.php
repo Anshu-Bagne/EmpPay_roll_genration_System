@@ -120,12 +120,12 @@ class BonusesTable extends Table
     public function buildRules(RulesChecker $rules)
     {
         $rules->add($rules->existsIn(['employee_id'], 'Employees'));
-        $rules->add(
-            $rules->isUnique(
-                ['employee_id','payroll_month','payroll_year','type'],
-                'This bonus already exists for the employee.'
-            )
-        );
+        //$rules->add(
+        // $rules->isUnique(
+        //     ['employee_id','payroll_month','payroll_year','type'],
+        //     'This bonus already exists for the employee.'
+        // )
+        // );
         return $rules;
     }
 
@@ -184,12 +184,10 @@ class BonusesTable extends Table
 
     public function getBonusTypeOptions()
     {
-        return $this->find()
-        ->select(['type'])
-        ->distinct(['type'])
-        ->order(['type' => 'ASC'])
-        ->combine('type', 'type')
-        ->toArray();
+        return [
+        'Performance' => 'Performance',
+        'Festival'    => 'Festival'
+    ];
     }
     public function getBonusTotal(array $bonuses)
     {
