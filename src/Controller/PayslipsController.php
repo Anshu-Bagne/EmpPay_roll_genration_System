@@ -132,7 +132,11 @@ class PayslipsController extends AppController
         $leaveDays,
         $absentDays
     ) {
+
+    // Database stores Annual Salary
         $baseSalary = $employee->base_salary;
+
+        $month_salary= $baseSalary /12;
 
         $paidDays = $presentDays + $leaveDays;
 
@@ -140,20 +144,28 @@ class PayslipsController extends AppController
 
         if ($workingDays > 0) {
             $salaryEarned =
-            ($baseSalary / $workingDays) * $paidDays;
+            ($month_salary / $workingDays) * $paidDays;
         }
 
         return [
 
-        'base_salary' => round($baseSalary, 2),
-        'working_days' => $workingDays,
-        'present_days' => $presentDays,
-        'leave_days' => $leaveDays,
-        'salary_earned' => round($salaryEarned, 2),
-        'absent_days' => $absentDays,
-        'bonus_total' => 0,
-        'deduction_total' => 0,
-        'net_salary' => round($salaryEarned, 2)
+        'base_salary'      => round($baseSalary, 2),
+
+        'working_days'     => $workingDays,
+
+        'present_days'     => $presentDays,
+
+        'leave_days'       => $leaveDays,
+
+        'absent_days'      => $absentDays,
+
+        'salary_earned'    => round($salaryEarned, 2),
+
+        'bonus_total'      => 0,
+
+        'deduction_total'  => 0,
+
+        'net_salary'       => round($salaryEarned, 2)
 
     ];
     }
