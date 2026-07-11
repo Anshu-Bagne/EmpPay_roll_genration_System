@@ -1,9 +1,7 @@
 <?php
-
 namespace App\Model\Table;
 
-use ArrayObject;
-use Cake\Event\Event;
+use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
@@ -11,7 +9,7 @@ use Cake\Validation\Validator;
 /**
  * Deductions Model
  *
- * @property \App\Model\Table\EmployeesTable&\Cake\ORM\Association\BelongsTo $Employees
+ * @property \App\Model\Table\PayslipsTable&\Cake\ORM\Association\BelongsTo $Payslips
  *
  * @method \App\Model\Entity\Deduction get($primaryKey, $options = [])
  * @method \App\Model\Entity\Deduction newEntity($data = null, array $options = [])
@@ -43,11 +41,7 @@ class DeductionsTable extends Table
         $this->addBehavior('Timestamp');
 
         $this->belongsTo('Payslips', [
-       'foreignKey' => 'payslip_id'
-       ]);
-
-        $this->belongsTo('Employees', [
-            'foreignKey' => 'employee_id',
+            'foreignKey' => 'payslip_id',
             'joinType' => 'INNER',
         ]);
     }
@@ -61,11 +55,12 @@ class DeductionsTable extends Table
     public function validationDefault(Validator $validator)
     {
         $validator
-            ->nonNegativeInteger('id')
+            ->integer('id')
             ->allowEmptyString('id', null, 'create');
 
         $validator
             ->scalar('type')
+            ->maxLength('type', 100)
             ->requirePresence('type', 'create')
             ->notEmptyString('type');
 
@@ -73,15 +68,6 @@ class DeductionsTable extends Table
             ->decimal('amount')
             ->requirePresence('amount', 'create')
             ->notEmptyString('amount');
-
-        $validator
-            ->requirePresence('payroll_month', 'create')
-            ->notEmptyString('payroll_month');
-
-        $validator
-            ->scalar('payroll_year')
-            ->requirePresence('payroll_year', 'create')
-            ->notEmptyString('payroll_year');
 
         $validator
             ->scalar('remarks')
@@ -100,36 +86,8 @@ class DeductionsTable extends Table
      */
     public function buildRules(RulesChecker $rules)
     {
-        $rules->add($rules->existsIn(['employee_id'], 'Employees'));
+        $rules->add($rules->existsIn(['payslip_id'], 'Payslips'));
 
         return $rules;
-    }
-
-    public function getDeductionTypeOptions()
-    {
-        return [
-        'Professional Tax'  => 'Professional Tax',
-        'Loan Recovery'     => 'Loan Recovery',
-        'Advance Salary'    => 'Advance Salary',
-        'Other'             => 'Other'
-    ];
-    }
-
-    public function getDeductionTotal(array $deductions)
-    {
-        return array_sum(array_column($deductions, 'amount'));
-    }
-
-
-    public function beforeMarshal(
-        Event $event,
-        ArrayObject $data,
-        ArrayObject $options
-    ) {
-        if (isset($options['employee_id'])) {
-            $data['employee_id'] = $options['employee_id'];
-            $data['payroll_month'] = $options['payroll_month'];
-            $data['payroll_year'] = $options['payroll_year'];
-        }
     }
 }

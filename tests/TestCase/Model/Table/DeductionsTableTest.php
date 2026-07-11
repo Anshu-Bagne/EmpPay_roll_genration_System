@@ -24,6 +24,7 @@ class DeductionsTableTest extends TestCase
      */
     public $fixtures = [
         'app.Deductions',
+        'app.Payslips',
         'app.Employees',
     ];
 
@@ -77,6 +78,26 @@ class DeductionsTableTest extends TestCase
      * @return void
      */
     public function testBuildRules()
+    {
+        $this->markTestIncomplete('Not implemented yet.');
+    }
+
+    /**
+     * Test getDeductionTypeOptions method
+     *
+     * @return void
+     */
+    public function testGetDeductionTypeOptions()
+    {
+        $this->markTestIncomplete('Not implemented yet.');
+    }
+
+    /**
+     * Test getDeductionTotal method
+     *
+     * @return void
+     */
+    public function testGetDeductionTotal()
     {
         $this->markTestIncomplete('Not implemented yet.');
     }

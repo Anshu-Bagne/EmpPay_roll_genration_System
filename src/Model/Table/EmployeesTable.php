@@ -47,8 +47,6 @@ class EmployeesTable extends Table
         $this->belongsTo('Departments', ['foreignKey' => 'department_id','joinType' => 'INNER',]);
         $this->belongsTo('Designations', ['foreignKey' => 'designation_id','joinType' => 'INNER',]);
         $this->hasMany('Attendances', [ 'foreignKey' => 'employee_id', ]);
-        $this->hasMany('Bonuses', ['foreignKey' => 'employee_id',]);
-        $this->hasMany('Deductions', ['foreignKey' => 'employee_id', ]);
         $this->hasMany('Payslips', ['foreignKey' => 'employee_id',]);
     }
 

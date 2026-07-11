@@ -16,6 +16,10 @@
         <li><?= $this->Html->link(__('List Payslips'), ['action' => 'index']) ?></li>
         <li><?= $this->Html->link(__('List Employees'), ['controller' => 'Employees', 'action' => 'index']) ?></li>
         <li><?= $this->Html->link(__('New Employee'), ['controller' => 'Employees', 'action' => 'add']) ?></li>
+        <li><?= $this->Html->link(__('List Bonuses'), ['controller' => 'Bonuses', 'action' => 'index']) ?></li>
+        <li><?= $this->Html->link(__('New Bonus'), ['controller' => 'Bonuses', 'action' => 'add']) ?></li>
+        <li><?= $this->Html->link(__('List Deductions'), ['controller' => 'Deductions', 'action' => 'index']) ?></li>
+        <li><?= $this->Html->link(__('New Deduction'), ['controller' => 'Deductions', 'action' => 'add']) ?></li>
     </ul>
 </nav>
 <div class="payslips form large-9 medium-8 columns content">
@@ -28,7 +32,10 @@
             echo $this->Form->control('payroll_year');
             echo $this->Form->control('working_days');
             echo $this->Form->control('present_days');
+            echo $this->Form->control('leave_days');
+            echo $this->Form->control('absent_days');
             echo $this->Form->control('base_salary');
+            echo $this->Form->control('salary_earned');
             echo $this->Form->control('bonus_total');
             echo $this->Form->control('deduction_total');
             echo $this->Form->control('net_salary');

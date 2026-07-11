@@ -4,16 +4,19 @@
  * @var \App\Model\Entity\Payslip[]|\Cake\Collection\CollectionInterface $payslips
  */
 ?>
-<nav class="large-2 medium-3 columns" id="actions-sidebar">
+<nav class="large-3 medium-4 columns" id="actions-sidebar">
     <ul class="side-nav">
         <li class="heading"><?= __('Actions') ?></li>
         <li><?= $this->Html->link(__('New Payslip'), ['action' => 'add']) ?></li>
         <li><?= $this->Html->link(__('List Employees'), ['controller' => 'Employees', 'action' => 'index']) ?></li>
         <li><?= $this->Html->link(__('New Employee'), ['controller' => 'Employees', 'action' => 'add']) ?></li>
-         <li><?= $this->Html->link(__('Generate payslip'), ['action' => 'generate']) ?></li>
+        <li><?= $this->Html->link(__('List Bonuses'), ['controller' => 'Bonuses', 'action' => 'index']) ?></li>
+        <li><?= $this->Html->link(__('New Bonus'), ['controller' => 'Bonuses', 'action' => 'add']) ?></li>
+        <li><?= $this->Html->link(__('List Deductions'), ['controller' => 'Deductions', 'action' => 'index']) ?></li>
+        <li><?= $this->Html->link(__('New Deduction'), ['controller' => 'Deductions', 'action' => 'add']) ?></li>
     </ul>
 </nav>
-<div class="payslips index large-10 medium-9 columns content">
+<div class="payslips index large-9 medium-8 columns content">
     <h3><?= __('Payslips') ?></h3>
     <table cellpadding="0" cellspacing="0">
         <thead>
@@ -24,7 +27,10 @@
                 <th scope="col"><?= $this->Paginator->sort('payroll_year') ?></th>
                 <th scope="col"><?= $this->Paginator->sort('working_days') ?></th>
                 <th scope="col"><?= $this->Paginator->sort('present_days') ?></th>
+                <th scope="col"><?= $this->Paginator->sort('leave_days') ?></th>
+                <th scope="col"><?= $this->Paginator->sort('absent_days') ?></th>
                 <th scope="col"><?= $this->Paginator->sort('base_salary') ?></th>
+                <th scope="col"><?= $this->Paginator->sort('salary_earned') ?></th>
                 <th scope="col"><?= $this->Paginator->sort('bonus_total') ?></th>
                 <th scope="col"><?= $this->Paginator->sort('deduction_total') ?></th>
                 <th scope="col"><?= $this->Paginator->sort('net_salary') ?></th>
@@ -43,7 +49,10 @@
                 <td><?= h($payslip->payroll_year) ?></td>
                 <td><?= $this->Number->format($payslip->working_days) ?></td>
                 <td><?= $this->Number->format($payslip->present_days) ?></td>
+                <td><?= $this->Number->format($payslip->leave_days) ?></td>
+                <td><?= $this->Number->format($payslip->absent_days) ?></td>
                 <td><?= $this->Number->format($payslip->base_salary) ?></td>
+                <td><?= $this->Number->format($payslip->salary_earned) ?></td>
                 <td><?= $this->Number->format($payslip->bonus_total) ?></td>
                 <td><?= $this->Number->format($payslip->deduction_total) ?></td>
                 <td><?= $this->Number->format($payslip->net_salary) ?></td>

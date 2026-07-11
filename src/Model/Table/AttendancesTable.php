@@ -135,28 +135,21 @@ class AttendancesTable extends Table
     }
 
     public function getAttendanceSummary($employeeId, $month, $year)
-    {
-        $summary =['present' => 0,'leave' => 0,'absent' =>0];
-
-        $records = $this->find()
+{
+    return $this->find()
         ->select([
-            'status',
-            'total' => $this->find()->func()->count('*')
+            'present_days' => 'SUM(CASE WHEN status="present" THEN 1 ELSE 0 END)',
+            'leave_days' => 'SUM(CASE WHEN status="leave" THEN 1 ELSE 0 END)',
+            'absent_days' => 'SUM(CASE WHEN status="absent" THEN 1 ELSE 0 END)'
         ])
         ->where([
             'employee_id' => $employeeId,
             'MONTH(attendance_date)' => $month,
             'YEAR(attendance_date)' => $year
         ])
-        ->group('status')
-        ->toArray();
-
-        foreach ($records as $record) {
-            $summary[$record->status] = $record->total;
-        }
-
-        return $summary;
-    }
+        ->enableHydration(false)
+        ->first();
+}
 
     public function getMissingAttendanceDates($employeeId, $month, $year)
     {
@@ -219,21 +212,20 @@ class AttendancesTable extends Table
     }
 
     public function getWorkingDays($month, $year)
-    {
-        $daysInMonth = cal_days_in_month(
-            CAL_GREGORIAN,
-            $month,
-            $year
-        );
+{
+    $start = new \DateTime("$year-$month-01");
+    $end = clone $start;
+    $end->modify('last day of this month');
 
-        $sundays = 0;
+    $workingDays = 0;
 
-        for ($day = 1; $day <= $daysInMonth; $day++) {
-            if (date('w', strtotime($year . '-' . $month . '-' . $day)) == 0) {
-                $sundays++;
-            }
+    while ($start <= $end) {
+        if ($start->format('N') < 6) {
+            $workingDays++;
         }
-
-        return $daysInMonth - $sundays;
+        $start->modify('+1 day');
     }
+
+    return $workingDays;
+}
 }

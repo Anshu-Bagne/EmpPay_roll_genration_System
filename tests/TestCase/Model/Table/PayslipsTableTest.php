@@ -25,6 +25,8 @@ class PayslipsTableTest extends TestCase
     public $fixtures = [
         'app.Payslips',
         'app.Employees',
+        'app.Bonuses',
+        'app.Deductions',
     ];
 
     /**

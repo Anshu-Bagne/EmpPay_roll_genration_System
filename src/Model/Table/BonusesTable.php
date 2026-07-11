@@ -1,18 +1,15 @@
 <?php
-
 namespace App\Model\Table;
 
-use ArrayObject;
-use Cake\Event\Event;
+use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
-
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
 
 /**
  * Bonuses Model
  *
- * @property \App\Model\Table\EmployeesTable&\Cake\ORM\Association\BelongsTo $Employees
+ * @property \App\Model\Table\PayslipsTable&\Cake\ORM\Association\BelongsTo $Payslips
  *
  * @method \App\Model\Entity\Bonus get($primaryKey, $options = [])
  * @method \App\Model\Entity\Bonus newEntity($data = null, array $options = [])
@@ -43,14 +40,10 @@ class BonusesTable extends Table
 
         $this->addBehavior('Timestamp');
 
-        $this->belongsTo('Employees', [
-            'foreignKey' => 'employee_id',
+        $this->belongsTo('Payslips', [
+            'foreignKey' => 'payslip_id',
             'joinType' => 'INNER',
         ]);
-
-        $this->belongsTo('Payslips', [
-            'foreignKey'=>'payslip_id'
-            ]);
     }
 
     /**
@@ -62,53 +55,24 @@ class BonusesTable extends Table
     public function validationDefault(Validator $validator)
     {
         $validator
-            ->nonNegativeInteger('id')
+            ->integer('id')
             ->allowEmptyString('id', null, 'create');
-        // Employee
-        $validator
-           ->nonNegativeInteger('employee_id')
-           ->requirePresence('employee_id', 'create')
-           ->notEmptyString('employee_id', 'Please select an employee.');
 
         $validator
-    ->scalar('type')
-    ->requirePresence('type', 'create')
-    ->notEmptyString('type')
-    ->inList(
-        'type',
-        ['Performance', 'Festival'],
-        'Invalid bonus type.'
-    );
-        $validator
-          ->numeric('amount', 'Enter a valid bonus amount.')
-          ->greaterThan('amount', 0, 'Bonus amount must be greater than zero.')
-           ->requirePresence('amount', 'create')
-              ->notEmptyString('amount');
+            ->scalar('type')
+            ->maxLength('type', 100)
+            ->requirePresence('type', 'create')
+            ->notEmptyString('type');
 
         $validator
-    ->integer('payroll_month')
-    ->range('payroll_month', [1, 12], 'Month must be between 1 and 12.')
-    ->requirePresence('payroll_month', 'create')
-    ->notEmptyString('payroll_month');
+            ->decimal('amount')
+            ->requirePresence('amount', 'create')
+            ->notEmptyString('amount');
 
         $validator
-    ->integer('payroll_year')
-    ->greaterThanOrEqual(
-        'payroll_year',
-        2024,
-        'Invalid payroll year.'
-    )
-    ->requirePresence('payroll_year', 'create')
-    ->notEmptyString('payroll_year');
-
-        $validator
-    ->scalar('remarks')
-    ->maxLength(
-        'remarks',
-        255,
-        'Remarks cannot exceed 255 characters.'
-    )
-    ->allowEmptyString('remarks');
+            ->scalar('remarks')
+            ->maxLength('remarks', 255)
+            ->allowEmptyString('remarks');
 
         return $validator;
     }
@@ -122,90 +86,8 @@ class BonusesTable extends Table
      */
     public function buildRules(RulesChecker $rules)
     {
-        $rules->add($rules->existsIn(['employee_id'], 'Employees'));
-        //$rules->add(
-        // $rules->isUnique(
-        //     ['employee_id','payroll_month','payroll_year','type'],
-        //     'This bonus already exists for the employee.'
-        // )
-        // );
+        $rules->add($rules->existsIn(['payslip_id'], 'Payslips'));
+
         return $rules;
-    }
-
-    public function getmonthlyBonus($EmployeeId, $month, $year)
-    {
-        $bonus= $this->find()
-       ->where([
-        'employee_id'=>$EmployeeId,
-        'payroll_month'=>$month,
-        'payroll_year'=>$year
-       ])
-       ->select(['total_bonus'=>$this->find()->func()->sum('amount')])
-       ->first();
-
-        if ($bonus && $bonus->total_bonus) {
-            return $bonus->total_bonus;
-        }
-        return 0;
-    }
-
-    public function payrollExists($month, $year)
-    {
-        return $this
-               ->Employees->Payslips->find()
-               ->where([
-                      'payroll_month' =>$month,
-                      'payroll_year'  => $year
-               ])
-               ->count()>0;
-    }
-
-    public function saveBonus(array $data)
-    {
-        $bonus = $this->newEntity();
-        $bonus = $this->patchEntity($bonus, $data);
-        return $this->save($bonus);
-    }
-
-    public function validateBonusMonth($month, $year)
-    {
-        $currentMonth = date('n');
-        $currentYear = date('Y');
-
-        if (
-        $year < $currentYear ||
-        ($year == $currentYear && $month < $currentMonth)
-    ) {
-            return [
-            'success' => false,
-            'message' => 'Bonus cannot be assigned for a past payroll month.'
-        ];
-        }
-
-        return ['success' => true];
-    }
-
-    public function getBonusTypeOptions()
-    {
-        return [
-        'Performance' => 'Performance',
-        'Festival'    => 'Festival'
-    ];
-    }
-    public function getBonusTotal(array $bonuses)
-    {
-        return array_sum(array_column($bonuses, 'amount'));
-    }
-
-    public function beforeMarshal(
-        Event $event,
-        ArrayObject $data,
-        ArrayObject $options
-    ) {
-        if (isset($options['employee_id'])) {
-            $data['employee_id'] = $options['employee_id'];
-            $data['payroll_month'] = $options['payroll_month'];
-            $data['payroll_year'] = $options['payroll_year'];
-        }
     }
 }

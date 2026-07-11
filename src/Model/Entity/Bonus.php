@@ -7,16 +7,15 @@ use Cake\ORM\Entity;
  * Bonus Entity
  *
  * @property int $id
- * @property int $employee_id
+ * @property int $payslip_id
  * @property string $type
  * @property float $amount
- * @property int $payroll_month
- * @property string $payroll_year
  * @property string|null $remarks
- * @property \Cake\I18n\FrozenTime $created
- * @property \Cake\I18n\FrozenTime $modified
+ * @property \Cake\I18n\FrozenTime|null $created
+ * @property \Cake\I18n\FrozenTime|null $modified
  *
  * @property \App\Model\Entity\Employee $employee
+ * @property \App\Model\Entity\Payslip $payslip
  */
 class Bonus extends Entity
 {
@@ -30,14 +29,13 @@ class Bonus extends Entity
      * @var array
      */
     protected $_accessible = [
-        'employee_id' => true,
+        'payslip_id' => true,
         'type' => true,
         'amount' => true,
-        'payroll_month' => true,
-        'payroll_year' => true,
         'remarks' => true,
         'created' => true,
         'modified' => true,
         'employee' => true,
+        'payslip' => true,
     ];
 }

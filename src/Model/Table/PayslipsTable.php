@@ -1,7 +1,7 @@
 <?php
-
 namespace App\Model\Table;
 
+use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
@@ -10,6 +10,8 @@ use Cake\Validation\Validator;
  * Payslips Model
  *
  * @property \App\Model\Table\EmployeesTable&\Cake\ORM\Association\BelongsTo $Employees
+ * @property \App\Model\Table\BonusesTable&\Cake\ORM\Association\HasMany $Bonuses
+ * @property \App\Model\Table\DeductionsTable&\Cake\ORM\Association\HasMany $Deductions
  *
  * @method \App\Model\Entity\Payslip get($primaryKey, $options = [])
  * @method \App\Model\Entity\Payslip newEntity($data = null, array $options = [])
@@ -40,22 +42,15 @@ class PayslipsTable extends Table
 
         $this->addBehavior('Timestamp');
 
-        $this->hasMany('Bonuses', [
-            'foreignKey' => 'payslip_id',
-            'saveStrategy' => 'append'
-        ]);
-
-        $this->hasMany('Deductions', [
-            'foreignKey' => 'payslip_id',
-            'saveStrategy' => 'append',
-            'dependent' => true,
-        ]);
-
-
-
         $this->belongsTo('Employees', [
             'foreignKey' => 'employee_id',
             'joinType' => 'INNER',
+        ]);
+        $this->hasMany('Bonuses', [
+            'foreignKey' => 'payslip_id',
+        ]);
+        $this->hasMany('Deductions', [
+            'foreignKey' => 'payslip_id',
         ]);
     }
 
@@ -68,7 +63,7 @@ class PayslipsTable extends Table
     public function validationDefault(Validator $validator)
     {
         $validator
-            ->nonNegativeInteger('id')
+            ->integer('id')
             ->allowEmptyString('id', null, 'create');
 
         $validator
@@ -81,32 +76,24 @@ class PayslipsTable extends Table
             ->notEmptyString('payroll_year');
 
         $validator
-            ->nonNegativeInteger('working_days')
+            ->integer('working_days')
+            ->requirePresence('working_days', 'create')
             ->notEmptyString('working_days');
 
         $validator
-           ->nonNegativeInteger('leave_days')
-           ->notEmptyString('leave_days');
-
-        $validator
-          ->decimal('salary_earned')
-          ->notEmptyString('salary_earned');
-
-        $validator
-          ->decimal('pf_amount')
-            ->notEmptyString('pf_amount');
-
-        $validator
-         ->decimal('tds_amount')
-         ->notEmptyString('tds_amount');
-
-        $validator
-         ->decimal('unpaid_leave_deduction')
-        ->notEmptyString('unpaid_leave_deduction');
-
-        $validator
-            ->nonNegativeInteger('present_days')
+            ->integer('present_days')
+            ->requirePresence('present_days', 'create')
             ->notEmptyString('present_days');
+
+        $validator
+            ->integer('leave_days')
+            ->requirePresence('leave_days', 'create')
+            ->notEmptyString('leave_days');
+
+        $validator
+            ->integer('absent_days')
+            ->requirePresence('absent_days', 'create')
+            ->notEmptyString('absent_days');
 
         $validator
             ->decimal('base_salary')
@@ -114,12 +101,17 @@ class PayslipsTable extends Table
             ->notEmptyString('base_salary');
 
         $validator
+            ->decimal('salary_earned')
+            ->requirePresence('salary_earned', 'create')
+            ->notEmptyString('salary_earned');
+
+        $validator
             ->decimal('bonus_total')
-            ->notEmptyString('bonus_total');
+            ->allowEmptyString('bonus_total');
 
         $validator
             ->decimal('deduction_total')
-            ->notEmptyString('deduction_total');
+            ->allowEmptyString('deduction_total');
 
         $validator
             ->decimal('net_salary')
@@ -146,105 +138,5 @@ class PayslipsTable extends Table
         $rules->add($rules->existsIn(['employee_id'], 'Employees'));
 
         return $rules;
-    }
-
-    public function createPayslipEntity($employee, $month, $year, $workingDays, $paymentDate)
-    {
-        $payslip = $this->newEntity();
-        $payslip = $this->patchEntity($payslip, [
-            'employee_id'            => $employee->id,
-            'payroll_month'          => $month,
-            'payroll_year'           => $year,
-            'working_days'           => $workingDays,
-            'present_days'           => $employee->present_days,
-            'leave_days'             => $employee->leave_days,
-            'base_salary'            => $employee->monthly_salary,
-            'salary_earned'          => $employee->salary_earned,
-            'bonus_total'            => $employee->bonus,
-            'pf_amount'              => $employee->pf,
-            'tds_amount'             => $employee->tds,
-            'deduction_total'        => $employee->total_deduction,
-            'unpaid_leave_deduction' => $employee->unpaid_leave_deduction,
-            'net_salary'             => $employee->net_salary,
-            'payment_date'           => $paymentDate
-             ]);
-        return $payslip;
-    }
-
-    public function payrollExists($month, $year)
-    {
-        return $this->find()
-        ->where([
-        'payroll_month' => $month,
-        'payroll_year' => $year
-        ])
-        ->count();
-    }
-
-    //fuctions of reportcontroller
-    public function getDepartmentSalaryReport($month, $year)
-    {
-        $report = $this->find();
-        return $report->select([
-                'department_name' => 'Departments.name',
-                'base_pay' => $report->func()->sum('Payslips.base_salary'),
-                'bonus' => $report->func()->sum('Payslips.bonus_total'),
-                'deduction' => $report->func()->sum('Payslips.deduction_total'),
-                'net_salary' => $report->func()->sum('Payslips.net_salary')
-                ])
-                ->contain(['Employees.Departments'])
-                ->where([
-                    'Payslips.payroll_month' => $month,
-                   'Payslips.payroll_year'  => $year
-                ])
-               ->group([
-                    'Departments.id',
-                    'Departments.name'
-                 ])
-                ->enableHydration(false)
-                ->toArray();
-    }
-
-    public function getEmployeeMonthlyReport($month, $year)
-    {
-        $report = $this->find()
-        ->contain(['Employees.Departments'])
-        ->where([
-            'Payslips.payroll_month' => $month,
-            'Payslips.payroll_year' => $year
-        ])
-        ->order(['Employees.employee_code' => 'ASC'])
-        ->toArray();
-
-        return $report;
-    }
-
-    public function getEmployeeYearlyReport($year)
-    {
-        $query= $this->find();
-        return $query->select([
-                'employee_name' => 'Employees.name',
-                'department_name' => 'Departments.name',
-                'base_salary' => $query->func()->sum('Payslips.base_salary'),
-                'bonus' => $query->func()->sum('Payslips.bonus_total'),
-                'deduction' => $query->func()->sum('Payslips.deduction_total'),
-                'net_salary' => $query->func()->sum('Payslips.net_salary')
-            ])
-            ->contain([
-                'Employees.Departments'
-            ])
-            ->where([
-                'Payslips.payroll_year' => $year
-            ])
-            ->group([
-                'Employees.id',
-                'Employees.name',
-                'Departments.name'
-                ])
-                ->order([
-                    'Employees.employee_code'=>'ASC'
-                    ])
-                    //->enableHydration(false)
-                    ->toArray();
     }
 }

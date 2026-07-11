@@ -25,6 +25,7 @@ class BonusesTableTest extends TestCase
     public $fixtures = [
         'app.Bonuses',
         'app.Employees',
+        'app.Payslips',
     ];
 
     /**
@@ -77,6 +78,66 @@ class BonusesTableTest extends TestCase
      * @return void
      */
     public function testBuildRules()
+    {
+        $this->markTestIncomplete('Not implemented yet.');
+    }
+
+    /**
+     * Test getmonthlyBonus method
+     *
+     * @return void
+     */
+    public function testGetmonthlyBonus()
+    {
+        $this->markTestIncomplete('Not implemented yet.');
+    }
+
+    /**
+     * Test payrollExists method
+     *
+     * @return void
+     */
+    public function testPayrollExists()
+    {
+        $this->markTestIncomplete('Not implemented yet.');
+    }
+
+    /**
+     * Test saveBonus method
+     *
+     * @return void
+     */
+    public function testSaveBonus()
+    {
+        $this->markTestIncomplete('Not implemented yet.');
+    }
+
+    /**
+     * Test validateBonusMonth method
+     *
+     * @return void
+     */
+    public function testValidateBonusMonth()
+    {
+        $this->markTestIncomplete('Not implemented yet.');
+    }
+
+    /**
+     * Test getBonusTypeOptions method
+     *
+     * @return void
+     */
+    public function testGetBonusTypeOptions()
+    {
+        $this->markTestIncomplete('Not implemented yet.');
+    }
+
+    /**
+     * Test getBonusTotal method
+     *
+     * @return void
+     */
+    public function testGetBonusTotal()
     {
         $this->markTestIncomplete('Not implemented yet.');
     }
