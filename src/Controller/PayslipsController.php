@@ -94,6 +94,12 @@ class PayslipsController extends AppController
         })
         ->toArray();
 
+        $bonusOptions = ['Performance'=>'Performance', 'Festival'=>'Festival','Overtime'=>'Overtime','Incentive'=>'Incentive'];
+
+        $this->set(compact(
+            'bonusOptions'
+        ));
+
         $this->set(compact(
             'payslip',
             'employees'

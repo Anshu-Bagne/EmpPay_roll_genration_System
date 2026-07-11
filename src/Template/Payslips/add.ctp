@@ -113,11 +113,62 @@
 
 </table>
 
+<h4>Bonuses</h4>
+
+<button
+type="button"
+id="addBonus"
+class="button">
+
++ Add Bonus
+
+</button>
+
+<table width="100%" id="bonusTable">
+
+<thead>
+
+<tr>
+
+<th>Type</th>
+
+<th>Amount</th>
+
+<th>Remarks</th>
+
+<th>Action</th>
+
+</tr>
+
+</thead>
+
+<tbody id="bonusBody">
+
+</tbody>
+
+</table>
+
 </fieldset>
 
 <?= $this->Form->button(__('Save')); ?>
 
 <?= $this->Form->end(); ?>
+
+<?php
+
+$bonusDropdown='';
+
+foreach ($bonusOptions as $key=>$value) {
+    $bonusDropdown.='
+
+<option value="'.$key.'">
+
+'.$value.'
+
+</option>';
+}
+
+?>
 
 <script>
 
@@ -175,6 +226,150 @@ $('#employee-id,#payroll-month,#payroll-year').change(function(){
     });
 
 });
+
+let bonusIndex=0;
+
+$('#addBonus').click(function(){
+
+let row=`
+
+<tr class="bonus-row">
+
+<td>
+
+<select
+name="bonuses[${bonusIndex}][type]"
+class="bonus-type">
+
+<option value="">Select</option>
+
+<?= $bonusDropdown ?>
+
+</select>
+
+</td>
+
+<td>
+
+<input
+type="number"
+class="bonus-amount"
+name="bonuses[${bonusIndex}][amount]"
+step="0.01">
+
+</td>
+
+<td>
+
+<input
+type="text"
+name="bonuses[${bonusIndex}][remarks]">
+
+</td>
+
+<td>
+
+<button
+type="button"
+class="removeBonus">
+
+✖
+
+</button>
+
+</td>
+
+</tr>
+
+`;
+
+$('#bonusBody').append(row);
+
+bonusIndex++;
+
+});
+
+$(document).on(
+
+'click',
+
+'.removeBonus',
+
+function(){
+
+$(this)
+
+.closest('tr')
+
+.remove();
+
+calculatePreview();
+
+});
+
+$(document).on('keyup change','.bonus-amount',
+function(){
+    calculatePreview();
+});
+
+function calculatePreview()
+{
+
+let salaryEarned=
+
+parseFloat(
+
+$('#previewSalaryEarned')
+
+.text()
+
+)||0;
+
+let totalBonus=0;
+
+$('.bonus-amount').each(function(){
+
+totalBonus+=
+
+parseFloat($(this).val())
+
+||0;
+
+});
+
+let deduction=
+
+parseFloat(
+
+$('#previewDeduction')
+
+.text()
+
+)||0;
+
+let netSalary=
+
+salaryEarned
+
++
+
+totalBonus
+
+-
+
+deduction;
+
+$('#previewBonus')
+
+.text(totalBonus.toFixed(2));
+
+$('#previewNetSalary')
+
+.text(netSalary.toFixed(2));
+
+}
+
+
 
 </script>
 
