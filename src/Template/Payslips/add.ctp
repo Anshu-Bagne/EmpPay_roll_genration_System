@@ -82,6 +82,37 @@
 
 </table>
 
+<h4>Payroll Preview</h4>
+
+<table width="100%">
+
+<tr>
+    <th>Base Salary</th>
+    <td id="previewBaseSalary">0</td>
+</tr>
+
+<tr>
+    <th>Salary Earned</th>
+    <td id="previewSalaryEarned">0</td>
+</tr>
+
+<tr>
+    <th>Total Bonus</th>
+    <td id="previewBonus">0</td>
+</tr>
+
+<tr>
+    <th>Total Deduction</th>
+    <td id="previewDeduction">0</td>
+</tr>
+
+<tr>
+    <th>Net Salary</th>
+    <td id="previewNetSalary">0</td>
+</tr>
+
+</table>
+
 </fieldset>
 
 <?= $this->Form->button(__('Save')); ?>
@@ -132,6 +163,12 @@ $('#employee-id,#payroll-month,#payroll-year').change(function(){
             $('#workingDays').text(response.working_days);
             $('#leaveDays').text(response.leave_days);
             $('#absentDays').text(response.absent_days);
+
+            $('#previewBaseSalary').text(response.base_salary);
+            $('#previewBonus').text(response.bonus_total);
+            $('#previewSalaryEarned').text(response.salary_earned);
+            $('#previewNetSalary').text(response.net_salary);
+            $('#previewDeduction').text(response.deduction_total);
 
         }
 

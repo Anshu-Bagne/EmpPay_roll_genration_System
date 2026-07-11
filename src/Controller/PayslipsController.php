@@ -155,10 +155,6 @@ class PayslipsController extends AppController
         'deduction_total' => 0,
         'net_salary' => round($salaryEarned, 2)
 
-
-
-
-
     ];
     }
 
@@ -200,20 +196,30 @@ class PayslipsController extends AppController
         $attendance = $this->Attendances->getAttendanceSummary($employeeId, $month, $year);
         $workingDays = $this->Attendances->getWorkingDays($month, $year);
 
+        $payroll = $this->calculateEmployeePayroll(
+            $employee,
+            $workingDays,
+            $attendance['present_days'] ?? 0,
+            $attendance['leave_days'] ?? 0,
+            $attendance['absent_days'] ?? 0
+        );
         return $this->response
         ->withType('application/json')
         ->withStringBody(json_encode([
             'success' => true,
-            'employee_code' => $employee->employee_code,
-            'name' => $employee->name,
-            'working_days' => $workingDays,
-            'present_days' => $attendance['present_days'] ?? 0,
-            'leave_days' => $attendance['leave_days'] ?? 0,
-            'absent_days' => $attendance['absent_days'] ?? 0,
-            'department' => $employee->department->name,
-            'designation' => $employee->designation->name,
-            'joining_date' => $employee->joining_date->format('d-M-Y'),
-            'base_salary' => $employee->base_salary
+        'employee_code' => $employee->employee_code,
+        'department' => $employee->department->name,
+        'designation' => $employee->designation->name,
+        'joining_date' => $employee->joining_date->format('d-M-Y'),
+        'base_salary' => $payroll['base_salary'],
+        'working_days' => $payroll['working_days'],
+        'present_days' => $payroll['present_days'],
+        'leave_days' => $payroll['leave_days'],
+        'absent_days' => $payroll['absent_days'],
+        'salary_earned' => $payroll['salary_earned'],
+        'bonus_total' => $payroll['bonus_total'],
+        'deduction_total' => $payroll['deduction_total'],
+        'net_salary' => $payroll['net_salary']
         ]));
     }
 }
