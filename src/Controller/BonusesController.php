@@ -19,7 +19,7 @@ class BonusesController extends AppController
     public function index()
     {
         $this->paginate = [
-            'contain' => ['Employees'],
+            'contain' => ['Payslips'],
         ];
         $bonuses = $this->paginate($this->Bonuses);
 

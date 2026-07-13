@@ -1,11 +1,17 @@
-<div class="payslips form large-9 medium-8 columns content">
+<nav class="large-2 medium-3 columns" id="actions-sidebar">
+    <ul class="side-nav">
+        <li class="heading"><?= __('Actions') ?></li>
+        <li><?= $this->Html->link(__('list Bonus'), ['controller'=> 'Bonuses','action' => 'index']) ?></li>
+        <li><?= $this->Html->link(__('List Payslips'), [ 'action' => 'index']) ?></li>
+        <li><?= $this->Html->link(__('list Employee'), ['controller' => 'Employees', 'action' => 'index']) ?></li>
+    </ul>
+</nav>
+<div class="payslips form large-10 medium-9 columns content">
 
 <?= $this->Form->create($payslip) ?>
 
 <fieldset>
-
     <legend><?= __('Generate Payslip') ?></legend>
-
     <?= $this->Form->control('employee_id', [
         'options' => $employees,
         'empty' => 'Select Employee'
@@ -33,13 +39,9 @@
         'value' => date('Y')
     ]); ?>
 
-
-    <!-- ADD THIS BLOCK HERE -->
-
     <h4>Employee Summary</h4>
 
 <table width="100%">
-
     <tr>
         <th>Employee Code</th>
         <td id="employeeCode">-</td>
@@ -47,7 +49,6 @@
         <th>Department</th>
         <td id="department">-</td>
     </tr>
-
     <tr>
         <th>Designation</th>
         <td id="designation">-</td>
@@ -165,19 +166,15 @@
 <?= $this->Form->button(__('Save')); ?>
 <?= $this->Form->end(); ?>
 
-<?php
-$bonusDropdown='';
+<?php $bonusDropdown='';
 foreach ($bonusOptions as $key=>$value) {
     $bonusDropdown.='<option value="'.$key.'">'.$value.'</option>';
-}
-?>
+}?>
 
-<?php
-$deductionDropdown='';
+<?php $deductionDropdown='';
     foreach ($deductionOptions as $key=>$value) {
         $deductionDropdown.='<option value="'.$key.'">'.$value.'</option>';
-    }
-?>
+    }?>
 
 <script>
 
@@ -198,11 +195,9 @@ $('#employee-id,#payroll-month,#payroll-year').change(function(){
             payroll_month:month,
             payroll_year:year
         },
-
         headers:{
             "X-CSRF-Token": $('meta[name="csrfToken"]').attr('content')
         },
-
         dataType:'json',
         success:function(response){
 
@@ -329,25 +324,24 @@ $(document).on('keyup change','.deduction-amount',function(){
 
 function calculatePreview()
 {
+    let salaryEarned =parseFloat($('#previewSalaryEarned').text())||0;
+    let totalBonus = 0;
+    
+    $('.bonus-amount').each(function(){
+          totalBonus +=parseFloat($(this).val())||0;});
+    let totalDeduction = 0;
 
-let salaryEarned =parseFloat($('#previewSalaryEarned').text())||0;
-let totalBonus = 0;
+    $('.deduction-amount').each(function(){
+       totalDeduction +=parseFloat($(this).val())||0;});
+    let netSalary =salaryEarned+totalBonus-totalDeduction;
 
-$('.bonus-amount').each(function(){
-    totalBonus +=parseFloat($(this).val())||0;});
-let totalDeduction = 0;
-
-$('.deduction-amount').each(function(){
-    totalDeduction +=parseFloat($(this).val())||0;});
-let netSalary =salaryEarned+totalBonus-totalDeduction;
-
-$('#previewBonus').text(totalBonus.toFixed(2));
-$('#previewDeduction').text(totalDeduction.toFixed(2));
-$('#previewNetSalary').text(netSalary.toFixed(2));
-//hidden terms
-$('#bonusTotalInput').val(totalBonus.toFixed(2));
-$('#deductionTotalInput').val(totalDeduction.toFixed(2));
-$('#netSalaryInput').val(netSalary.toFixed(2));
+    $('#previewBonus').text(totalBonus.toFixed(2));
+    $('#previewDeduction').text(totalDeduction.toFixed(2));
+    $('#previewNetSalary').text(netSalary.toFixed(2));
+    //hidden terms
+    $('#bonusTotalInput').val(totalBonus.toFixed(2));
+    $('#deductionTotalInput').val(totalDeduction.toFixed(2));
+    $('#netSalaryInput').val(netSalary.toFixed(2));
 
 }
 

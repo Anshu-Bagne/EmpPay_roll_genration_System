@@ -13,7 +13,7 @@
         <li><?= $this->Html->link(__('List Payslips'), ['controller' => 'Payslips', 'action' => 'index']) ?></li>
         <li><?= $this->Html->link(__('Generate Payslip'), ['controller'=>'Payslips','action'=>'generate']) ?></li>
         <li><?= $this->Html->link(__('New Payslip'), ['controller' => 'Payslips', 'action' => 'add']) ?></li>
-        <li><?= $this->html->link(__('Add Bonus'), ['controller'=>'Bonuses','action'=>'add']) ?></li>
+        
     
     </ul>
 </nav>

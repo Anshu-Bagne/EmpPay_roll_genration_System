@@ -135,21 +135,27 @@ class AttendancesTable extends Table
     }
 
     public function getAttendanceSummary($employeeId, $month, $year)
-{
-    return $this->find()
-        ->select([
-            'present_days' => 'SUM(CASE WHEN status="present" THEN 1 ELSE 0 END)',
-            'leave_days' => 'SUM(CASE WHEN status="leave" THEN 1 ELSE 0 END)',
-            'absent_days' => 'SUM(CASE WHEN status="absent" THEN 1 ELSE 0 END)'
-        ])
-        ->where([
-            'employee_id' => $employeeId,
-            'MONTH(attendance_date)' => $month,
-            'YEAR(attendance_date)' => $year
-        ])
-        ->enableHydration(false)
-        ->first();
-}
+    {
+        $result = $this->find()
+    ->select([
+        'present_days' => 'SUM(CASE WHEN status="present" THEN 1 ELSE 0 END)',
+        'leave_days'   => 'SUM(CASE WHEN status="leave" THEN 1 ELSE 0 END)',
+        'absent_days'  => 'SUM(CASE WHEN status="absent" THEN 1 ELSE 0 END)'
+    ])
+    ->where([
+        'employee_id' => $employeeId,
+        'MONTH(attendance_date)' => $month,
+        'YEAR(attendance_date)' => $year
+    ])
+    ->enableHydration(false)
+    ->first();
+
+        return [
+               'present_days' => (int)($result['present_days'] ?? 0),
+               'leave_days'   => (int)($result['leave_days'] ?? 0),
+               'absent_days'  => (int)($result['absent_days'] ?? 0)
+           ];
+    }
 
     public function getMissingAttendanceDates($employeeId, $month, $year)
     {
@@ -212,20 +218,20 @@ class AttendancesTable extends Table
     }
 
     public function getWorkingDays($month, $year)
-{
-    $start = new \DateTime("$year-$month-01");
-    $end = clone $start;
-    $end->modify('last day of this month');
+    {
+        $start = new \DateTime("$year-$month-01");
+        $end = clone $start;
+        $end->modify('last day of this month');
 
-    $workingDays = 0;
+        $workingDays = 0;
 
-    while ($start <= $end) {
-        if ($start->format('N') < 6) {
-            $workingDays++;
+        while ($start <= $end) {
+            if ($start->format('N') < 6) {
+                $workingDays++;
+            }
+            $start->modify('+1 day');
         }
-        $start->modify('+1 day');
-    }
 
-    return $workingDays;
-}
+        return $workingDays;
+    }
 }

@@ -255,8 +255,61 @@ class EmployeesTable extends Table
                 'Payslips.payroll_month' => $payrollMonth,
                 'Payslips.payroll_year' => $payrollYear
             ]);
-        });
+        })->distinct(['Employees.id']);
     }
+
+    public function getPayrollPreview($payrollMonth, $payrollYear)
+    {
+        $lastDate = date(
+            'Y-m-t',
+            strtotime($payrollYear . '-' . $payrollMonth . '-01')
+        );
+
+        $employees = $this->getPayrollEmployees(
+            $lastDate,
+            $payrollMonth,
+            $payrollYear
+        )->toArray();
+
+        $workingDays = $this->Attendances->getWorkingDays(
+            $payrollMonth,
+            $payrollYear
+        );
+
+        foreach ($employees as &$employee) {
+            $attendance = $this->Attendances->getAttendanceSummary(
+                $employee->id,
+                $payrollMonth,
+                $payrollYear
+            );
+
+            $payroll = $this->Payslips->calculateEmployeePayroll(
+                $employee,
+                $workingDays,
+                $attendance['present_days'],
+                $attendance['leave_days'],
+                $attendance['absent_days']
+            );
+
+            $employee->base_salary              = $payroll['base_salary'];
+            $employee->working_days             = $payroll['working_days'];
+            $employee->present_days             = $payroll['present_days'];
+            $employee->leave_days               = $payroll['leave_days'];
+            $employee->absent_days              = $payroll['absent_days'];
+            $employee->salary_earned            = $payroll['salary_earned'];
+            $employee->bonus                    = $payroll['bonus_total'];
+            $employee->manual_deduction         = 0;
+            $employee->unpaid_leave_deduction   = 0;
+            $employee->total_deduction          = $payroll['deduction_total'];
+            $employee->net_salary               = $payroll['net_salary'];
+        }
+        return [
+        'employees' => $employees,
+        'workingDays' => $workingDays
+    ];
+    }
+
+
 
 
     public function getBonusEmployees()

@@ -1,7 +1,7 @@
 <?php
+
 namespace App\Model\Table;
 
-use Cake\ORM\Query;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
@@ -138,5 +138,37 @@ class PayslipsTable extends Table
         $rules->add($rules->existsIn(['employee_id'], 'Employees'));
 
         return $rules;
+    }
+
+    public function calculateEmployeePayroll(
+        $employee,
+        $workingDays,
+        $presentDays,
+        $leaveDays,
+        $absentDays
+    ) {
+
+    // Database stores Annual Salary
+        $baseSalary = $employee->base_salary;
+        $month_salary= $baseSalary /12;
+        $paidleaves=(($leaveDays<2) ? 0 : $leaveDays-2);
+        $paidDays = $presentDays-$absentDays-$paidleaves;
+        $salaryEarned = 0;
+
+        if ($workingDays > 0) {
+            $salaryEarned =($month_salary / $workingDays) * $paidDays;
+        }
+
+        return [
+        'base_salary'      => round($month_salary, 2),
+        'working_days'     => $workingDays,
+        'present_days'     => $presentDays,
+        'leave_days'       => $leaveDays,
+        'absent_days'      => $absentDays,
+        'salary_earned'    => round($salaryEarned, 2),
+        'bonus_total'      => 0,
+        'deduction_total'  => 0,
+        'net_salary'       => round($salaryEarned, 2)
+        ];
     }
 }

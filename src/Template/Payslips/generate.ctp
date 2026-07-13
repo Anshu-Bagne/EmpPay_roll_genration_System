@@ -35,6 +35,23 @@
 <?= $this->Form->button(' Preview Payroll') ?>
 <?= $this->Form->end() ?>
 <?php if (!empty($employees)): ?>
+    <h3>Payroll Preview</h3>
+
+    <?= h($employee->employee_code) ?>
+    <?= h($employee->name) ?>
+    <?= h($employee->department->name) ?>
+    <?= number_format($employee->base_salary, 2) ?>
+    <?= $employee->working_days ?>
+    <?= $employee->present_days ?>
+    <?= $employee->leave_days ?>
+    <?= $employee->absent_days ?>
+    <?= number_format($employee->bonus, 2) ?>
+    <?= number_format($employee->manual_deduction, 2) ?>
+    <?= number_format($employee->unpaid_leave_deduction, 2) ?>
+    <?= number_format($employee->total_deduction, 2) ?>
+    <?= number_format($employee->net_salary, 2) ?>
+    
+
 <table border="1" cellpadding="8">
 <tr>
 <th>Employee Code</th>

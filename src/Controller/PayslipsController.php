@@ -165,38 +165,6 @@ class PayslipsController extends AppController
         $this->set(compact('payslip', 'employees'));
     }
 
-    private function calculateEmployeePayroll(
-        $employee,
-        $workingDays,
-        $presentDays,
-        $leaveDays,
-        $absentDays
-    ) {
-
-    // Database stores Annual Salary
-        $baseSalary = $employee->base_salary;
-        $month_salary= $baseSalary /12;
-        $paidDays = $presentDays + $leaveDays;
-        $salaryEarned = 0;
-
-        if ($workingDays > 0) {
-            $salaryEarned =
-            ($month_salary / $workingDays) * $paidDays;
-        }
-
-        return [
-        'base_salary'      => round($baseSalary, 2),
-        'working_days'     => $workingDays,
-        'present_days'     => $presentDays,
-        'leave_days'       => $leaveDays,
-        'absent_days'      => $absentDays,
-        'salary_earned'    => round($salaryEarned, 2),
-        'bonus_total'      => 0,
-        'deduction_total'  => 0,
-        'net_salary'       => round($salaryEarned, 2)
-        ];
-    }
-
     /**
      * Delete method
      *
@@ -217,6 +185,7 @@ class PayslipsController extends AppController
         return $this->redirect(['action' => 'index']);
     }
 
+
     public function getEmployeePayrollDetails()
     {
         $this->request->allowMethod(['post']);
@@ -235,7 +204,7 @@ class PayslipsController extends AppController
         $attendance = $this->Attendances->getAttendanceSummary($employeeId, $month, $year);
         $workingDays = $this->Attendances->getWorkingDays($month, $year);
 
-        $payroll = $this->calculateEmployeePayroll(
+        $payroll = $this->Payslips->calculateEmployeePayroll(
             $employee,
             $workingDays,
             $attendance['present_days'] ?? 0,
@@ -262,75 +231,186 @@ class PayslipsController extends AppController
         ]));
     }
 
-    // public function generate()
-    // {
-    //     $employees = [];
+    public function generate()
+    {
+        // Read Filters
+        $payrollMonth = $this->request->getQuery('payroll_month');
+        $payrollYear  = $this->request->getQuery('payroll_year');
+        $paymentDate  = $this->request->getQuery('payment_date', date('Y-m-d'));
 
-    //     $payrollMonth = null;
-    //     $payrollYear = null;
-    //     $paymentDate = date('Y-m-d');
+        // Default Values
+        $employees = [];
+        $workingDays = 0;
+        $canGeneratePayroll = false;
+        $incompleteEmployees = [];
+        $payrollExists = false;
+        $existingPayroll = null;
 
-    //     $payrollExists = false;
-    //     $existingPayroll = null;
+        $currentMonth = date('n');
+        $currentYear = date('Y');
 
-    //     if ($this->request->is('get')) {
-    //         $payrollMonth = $this->request->getQuery('payroll_month');
-    //         $payrollYear = $this->request->getQuery('payroll_year');
-    //         $paymentDate = $this->request->getQuery('payment_date', date('Y-m-d'));
+        /*
+         * Validate Future Payroll Month
+         */
+        if (!empty($payrollMonth) && !empty($payrollYear)) {
+            if (
+            $payrollYear > $currentYear ||
+            (
+                $payrollYear == $currentYear &&
+                $payrollMonth > $currentMonth
+            )
+        ) {
+                $this->Flash->error(
+                    __('Payroll cannot be generated for a future month.')
+                );
 
-    //         if (!empty($payrollMonth) && !empty($payrollYear)) {
-    //             $existingPayroll = $this->Payslips
-    //     ->find()
-    //     ->where([
-    //         'payroll_month' => $payrollMonth,
-    //         'payroll_year'  => $payrollYear
-    //     ])
-    //     ->first();
+                return $this->redirect(['action' => 'generate']);
+            }
+        }
 
-    //             if ($existingPayroll) {
-    //                 $payrollExists = true;
-    //             }
-    //         }
+//    Validate Payment Date
+        if (!empty($paymentDate) &&!empty($payrollMonth) &&!empty($payrollYear)) {
+            if (is_array($paymentDate)) {
+                $paymentDate = sprintf(
+                    '%04d-%02d-%02d',
+                    $paymentDate['year'],
+                    $paymentDate['month'],
+                    $paymentDate['day']
+                );
+            }
+            $paymentDateObj = new \DateTime($paymentDate);
+            $payrollMonthObj = new \DateTime($payrollYear . '-' .sprintf('%02d', $payrollMonth) .'-01');
+            if ($paymentDateObj < $payrollMonthObj) {
+                $this->Flash->error(
+                    __('Payment date cannot be before the payroll month.')
+                );
 
-    //         if (!$payrollExists &&!empty($payrollMonth) &&!empty($payrollYear)) {
-    //             $employees = $this->Payslips->Employees->getPayrollEmployees(
-    //                 $payrollMonth,
-    //                 $payrollYear
-    //             )
-    //     ->toArray();
-    //         }
+                return $this->redirect(['action' => 'generate']);
+            }
+        }
+
+        // Load Payroll Preview
+        if (!empty($payrollMonth) &&!empty($payrollYear)) {
+            $result = $this->Payslips->Employees
+            ->getPayrollPreview($payrollMonth, $payrollYear);
+
+            $employees = $result['employees'];
+            $workingDays = $result['workingDays'];
+
+            if (empty($employees)) {
+                $this->Flash->info(
+                    __('All eligible employees already have payslips for the selected payroll period.')
+                );
+            }
+
+            if (empty($employees)) {
+                $this->Flash->info(
+                    __('All active employees already have payslips for the selected payroll period.')
+                );
+            }
+
+            $canGeneratePayroll = true;
+            $incompleteEmployees = [];
+        }
+
+        $this->set(compact(
+            'payrollMonth',
+            'payrollYear',
+            'paymentDate',
+            'employees',
+            'workingDays',
+            'canGeneratePayroll',
+            'incompleteEmployees',
+            'payrollExists',
+            'existingPayroll'
+        ));
+    }
+    public function savePayroll()
+    {
+        if (!$this->request->is('POST')) {
+            return $this->redirect(['action' => 'generate']);
+        }
+
+        $payrollMonth = $this->request->getData('payroll_month');
+        $payrollYear  = $this->request->getData('payroll_year');
+        $paymentDate  = $this->request->getData('payment_date');
+
+        $result = $this->Payslips->Employees
+        ->getPayrollPreview($payrollMonth, $payrollYear);
+
+        $employees = $result['employees'];
+
+
+        $exists = $this->Payslips->find()
+        ->where([
+              'payroll_month' => $payrollMonth,
+                'payroll_year'  => $payrollYear
+                ])
+        ->count();
+
+        if ($exists) {
+            $this->Flash->error(__('Payroll already generated.'));
+
+            return $this->redirect(['action' => 'generate']);
+        }
+
+        $payslips = [];
+
+        foreach ($employees as $employee) {
+            $payslips[] = $this->Payslips->newEntity([
+        'employee_id' => $employee->id,
+        'payroll_month' => $payrollMonth,
+        'payroll_year' => $payrollYear,
+        'payment_date' => $paymentDate,
+        'base_salary' => $employee->base_salary,
+        'working_days' => $employee->working_days,
+        'present_days' => $employee->present_days,
+        'leave_days' => $employee->leave_days,
+        'absent_days' => $employee->absent_days,
+        'salary_earned' => $employee->salary_earned,
+        'bonus_total' => $employee->bonus,
+        'deduction_total' => $employee->total_deduction,
+        'net_salary' => $employee->net_salary
+    ]);
+        }
+
+        $this->Payslips->saveMany($payslips);
+
+        $this->Flash->success(__('Payroll generated successfully.'));
+        return $this->redirect(['action' => 'index']);
+    }
+}
+
+
+
+    // private function calculateEmployeePayroll(
+    //     $employee,
+    //     $workingDays,
+    //     $presentDays,
+    //     $leaveDays,
+    //     $absentDays
+    // ) {
+
+    // // Database stores Annual Salary
+    //     $baseSalary = $employee->base_salary;
+    //     $month_salary= $baseSalary /12;
+    //     $paidDays = $presentDays-$absentDays-(($leaveDays<2) ? 0 : $leaveDays-=2);
+    //     //  + $leaveDays;
+    //     $salaryEarned = 0;
+
+    //     if ($workingDays > 0) {
+    //         $salaryEarned =($month_salary / $workingDays) * $paidDays;
     //     }
 
-    //     $this->set(compact(
-    //         'employees',
-    //         'payrollMonth',
-    //         'payrollYear',
-    //         'paymentDate',
-    //         'payrollExists',
-    //         'existingPayroll'
-    //     ));
+    //     return [
+    //     'base_salary'      => round($month_salary, 2),
+    //     'working_days'     => $workingDays,
+    //     'present_days'     => $presentDays,
+    //     'leave_days'       => $leaveDays,
+    //     'absent_days'      => $absentDays,
+    //     'salary_earned'    => round($salaryEarned, 2),
+    //     'bonus_total'      => 0,
+    //     'deduction_total'  => 0,
+    //     'net_salary'       => round($salaryEarned, 2)
+    //     ];
     // }
-
-    // public function getPayrollEmployees($payrollMonth, $payrollYear)
-    // {
-    //     $lastDate = date('Y-m-t', strtotime($payrollYear . '-' . $payrollMonth . '-01'));
-
-    //     return $this->find()
-    //     ->contain([
-    //         'Departments'
-    //     ])
-    //     ->where([
-    //         'Employees.status' => 'active',
-    //         'Employees.joining_date <=' => $lastDate
-    //     ])
-    //     ->notMatching('Payslips', function ($q) use (
-    //         $payrollMonth,
-    //         $payrollYear
-    //     ) {
-    //         return $q->where([
-    //             'Payslips.payroll_month' => $payrollMonth,
-    //             'Payslips.payroll_year' => $payrollYear
-    //         ]);
-    //     });
-    // }
-}
