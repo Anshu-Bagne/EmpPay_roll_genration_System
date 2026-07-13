@@ -4,7 +4,7 @@
  * @var \App\Model\Entity\Payslip[]|\Cake\Collection\CollectionInterface $payslips
  */
 ?>
-<nav class="large-3 medium-4 columns" id="actions-sidebar">
+<nav class="large-2 medium-3 columns" id="actions-sidebar">
     <ul class="side-nav">
         <li class="heading"><?= __('Actions') ?></li>
         <li><?= $this->Html->link(__('New Payslip'), ['action' => 'add']) ?></li>
@@ -16,7 +16,7 @@
         <li><?= $this->Html->link(__('New Deduction'), ['controller' => 'Deductions', 'action' => 'add']) ?></li>
     </ul>
 </nav>
-<div class="payslips index large-9 medium-8 columns content">
+<div class="payslips index large-10 medium-9 columns content">
     <h3><?= __('Payslips') ?></h3>
     <table cellpadding="0" cellspacing="0">
         <thead>

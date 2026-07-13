@@ -58,51 +58,85 @@ class PayslipsController extends AppController
     public function add()
     {
         $payslip = $this->Payslips->newEntity();
-
         if ($this->request->is('post')) {
-            $payslip = $this->Payslips->patchEntity(
-                $payslip,
-                $this->request->getData(),
-                [
-                'associated' => [
-                    'Bonuses',
-                    'Deductions'
-                ]
-            ]
-            );
+            $data = $this->request->getData(); // Get all submitted form data
 
-            if ($this->Payslips->save($payslip)) {
-                $this->Flash->success(__('Payslip saved successfully.'));
 
-                return $this->redirect(['action' => 'index']);
+            // Check existing playlist
+            $existingPayslip = $this->Payslips
+            ->find()
+            ->where([
+                'employee_id'   => $data['employee_id'],
+                'payroll_month' => $data['payroll_month'],
+                'payroll_year'  => $data['payroll_year']
+            ])
+            ->first();
+
+            if ($existingPayslip) {
+                $this->Flash->error(__('Payslip has already been generated for this employee.'));
+                return $this->redirect(['action' => 'add']);
             }
 
-            $this->Flash->error(__('Unable to save payslip.'));
+            // Create entity: associated Bonus & Deduction records
+            $payslip = $this->Payslips->patchEntity(
+                $payslip,
+                $data,
+                ['associated' => [
+                    'Bonuses',
+                    'Deductions']
+                ]
+            );
+
+            // Save
+            if ($this->Payslips->save($payslip)) {
+                $this->Flash->success(__('Payslip has been generated successfully.'));
+                return $this->redirect(['action' => 'index']);
+            }
+            // Show validation errors during development
+            debug($payslip->getErrors());
+
+            $this->Flash->error(__('Unable to save the payslip.'));
         }
 
+        // Employee Dropdown
         $employees = $this->Payslips
         ->Employees
         ->find()
-        ->select(['id','employee_code','name'])
-        ->where(['status'=>'active'])
-        ->order(['employee_code'])
+        ->select([
+            'id',
+            'employee_code',
+            'name'])
+        ->where([
+            'status' => 'active'])
+        ->order([
+            'employee_code' => 'ASC'])
         ->all()
         ->combine('id', function ($employee) {
-            return $employee->employee_code .
-                   ' - ' .
-                   $employee->name;
+            return $employee->employee_code . ' - ' . $employee->name;
         })
         ->toArray();
 
-        $bonusOptions = ['Performance'=>'Performance', 'Festival'=>'Festival','Overtime'=>'Overtime','Incentive'=>'Incentive'];
+        // Bonus Options
+        $bonusOptions = [
+        'Performance' => 'Performance',
+        'Festival'    => 'Festival',
+        'Overtime'    => 'Overtime',
+        'Incentive'   => 'Incentive'
+        ];
 
-        $this->set(compact(
-            'bonusOptions'
-        ));
+        // Deduction Options
+        $deductionOptions = [
+        'Loan Recovery'    => 'Loan Recovery',
+        'Professional Tax' => 'Professional Tax',
+        'Advance'          => 'Advance',
+        'Other'            => 'Other'
+        ];
 
         $this->set(compact(
             'payslip',
-            'employees'
+            'employees',
+            'bonusOptions',
+            'deductionOptions'
         ));
     }
 
@@ -141,11 +175,8 @@ class PayslipsController extends AppController
 
     // Database stores Annual Salary
         $baseSalary = $employee->base_salary;
-
         $month_salary= $baseSalary /12;
-
         $paidDays = $presentDays + $leaveDays;
-
         $salaryEarned = 0;
 
         if ($workingDays > 0) {
@@ -154,26 +185,16 @@ class PayslipsController extends AppController
         }
 
         return [
-
         'base_salary'      => round($baseSalary, 2),
-
         'working_days'     => $workingDays,
-
         'present_days'     => $presentDays,
-
         'leave_days'       => $leaveDays,
-
         'absent_days'      => $absentDays,
-
         'salary_earned'    => round($salaryEarned, 2),
-
         'bonus_total'      => 0,
-
         'deduction_total'  => 0,
-
         'net_salary'       => round($salaryEarned, 2)
-
-    ];
+        ];
     }
 
     /**
@@ -240,4 +261,76 @@ class PayslipsController extends AppController
         'net_salary' => $payroll['net_salary']
         ]));
     }
+
+    // public function generate()
+    // {
+    //     $employees = [];
+
+    //     $payrollMonth = null;
+    //     $payrollYear = null;
+    //     $paymentDate = date('Y-m-d');
+
+    //     $payrollExists = false;
+    //     $existingPayroll = null;
+
+    //     if ($this->request->is('get')) {
+    //         $payrollMonth = $this->request->getQuery('payroll_month');
+    //         $payrollYear = $this->request->getQuery('payroll_year');
+    //         $paymentDate = $this->request->getQuery('payment_date', date('Y-m-d'));
+
+    //         if (!empty($payrollMonth) && !empty($payrollYear)) {
+    //             $existingPayroll = $this->Payslips
+    //     ->find()
+    //     ->where([
+    //         'payroll_month' => $payrollMonth,
+    //         'payroll_year'  => $payrollYear
+    //     ])
+    //     ->first();
+
+    //             if ($existingPayroll) {
+    //                 $payrollExists = true;
+    //             }
+    //         }
+
+    //         if (!$payrollExists &&!empty($payrollMonth) &&!empty($payrollYear)) {
+    //             $employees = $this->Payslips->Employees->getPayrollEmployees(
+    //                 $payrollMonth,
+    //                 $payrollYear
+    //             )
+    //     ->toArray();
+    //         }
+    //     }
+
+    //     $this->set(compact(
+    //         'employees',
+    //         'payrollMonth',
+    //         'payrollYear',
+    //         'paymentDate',
+    //         'payrollExists',
+    //         'existingPayroll'
+    //     ));
+    // }
+
+    // public function getPayrollEmployees($payrollMonth, $payrollYear)
+    // {
+    //     $lastDate = date('Y-m-t', strtotime($payrollYear . '-' . $payrollMonth . '-01'));
+
+    //     return $this->find()
+    //     ->contain([
+    //         'Departments'
+    //     ])
+    //     ->where([
+    //         'Employees.status' => 'active',
+    //         'Employees.joining_date <=' => $lastDate
+    //     ])
+    //     ->notMatching('Payslips', function ($q) use (
+    //         $payrollMonth,
+    //         $payrollYear
+    //     ) {
+    //         return $q->where([
+    //             'Payslips.payroll_month' => $payrollMonth,
+    //             'Payslips.payroll_year' => $payrollYear
+    //         ]);
+    //     });
+    // }
 }
